@@ -5,6 +5,8 @@ import { createServer } from "http";
 import path from "path";
 import { fileURLToPath } from "url";
 import { appConfigHandler } from "./appConfig";
+import { registerAccountRoutes } from "./accountRoutes";
+import { initSchema, purgeExpiredSessions } from "./accountStore";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -15,6 +17,12 @@ async function startServer() {
   app.use(express.json({ limit: "2mb" }));
 
   app.get("/api/app-config", appConfigHandler);
+  registerAccountRoutes(app);
+
+  // Tablolar ilk istekten önce hazır olsun; süresi dolmuş oturumlar temizlensin.
+  initSchema()
+    .then(purgeExpiredSessions)
+    .catch((error) => console.error("Veritabanı hazırlanamadı:", error));
   app.get("/api/aricimap/state", async (_req, res) => {
     res.json(await readState());
   });
