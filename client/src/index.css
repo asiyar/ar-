@@ -1,0 +1,106 @@
+/**
+ * ARICIMAP Community Atlas design system.
+ * A reference-aligned map-first workspace: forest navigation, cream surfaces and restrained honey actions.
+ */
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@theme inline {
+  --color-background: var(--cream);
+  --color-foreground: var(--ink);
+  --color-card: var(--card);
+  --color-card-foreground: var(--ink);
+  --color-border: var(--line);
+  --color-primary: var(--honey);
+  --color-primary-foreground: var(--forest);
+  --color-muted: var(--soft);
+  --color-muted-foreground: var(--muted);
+  --color-ring: var(--honey);
+}
+
+:root {
+  --forest: #263f2d;
+  --forest-2: #355a3f;
+  --moss: #668447;
+  --honey: #d59622;
+  --honey-deep: #a36d0a;
+  --honey-pale: #fff0c8;
+  --cream: #f7f4eb;
+  --card: #fffdfa;
+  --soft: #f0f5eb;
+  --ink: #2d3a2d;
+  --muted: #728072;
+  --line: #e0e4d9;
+  --blue: #2d7897;
+  --danger: #b95748;
+  --success: #31794d;
+  --shadow: 0 10px 26px rgba(33, 61, 43, 0.09);
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+@layer base {
+  * { box-sizing: border-box; }
+  html { background: var(--cream); }
+  body { margin: 0; min-width: 320px; background: var(--cream); color: var(--ink); font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; -webkit-font-smoothing: antialiased; }
+  button, input, select, textarea { font: inherit; }
+  button:not(:disabled) { cursor: pointer; }
+  button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible { outline: 3px solid rgb(213 150 34 / 34%); outline-offset: 2px; }
+}
+
+@layer components {
+  .atlas-shell { min-height: 100vh; background-color: var(--cream); background-image: linear-gradient(30deg, rgb(102 132 71 / 3%) 12%, transparent 12.5%, transparent 87%, rgb(102 132 71 / 3%) 87.5%), linear-gradient(150deg, rgb(102 132 71 / 3%) 12%, transparent 12.5%, transparent 87%, rgb(102 132 71 / 3%) 87.5%); background-size: 42px 72px; }
+  .atlas-card { border: 1px solid var(--line); border-radius: 0.875rem; background: rgb(255 253 250 / 92%); box-shadow: var(--shadow); }
+  .atlas-overline { color: #778775; font-size: 0.62rem; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; }
+  .atlas-sidebar { position: sticky; top: 0; display: flex; height: 100vh; width: 16.125rem; flex: 0 0 16.125rem; flex-direction: column; padding: 1.45rem 0.95rem 1.1rem; background: var(--forest); color: #edf3e8; box-shadow: 10px 0 32px rgb(30 52 36 / 9%); z-index: 30; }
+  .atlas-brand { display: flex; align-items: center; gap: 0.7rem; padding: 0 0.55rem 1.35rem; border-bottom: 1px solid rgb(255 255 255 / 12%); }
+  .hive-mark { position: relative; display: grid; height: 2.4rem; width: 2.4rem; place-items: center; border: 2px solid #edb93e; border-radius: 0.9rem 0.9rem 1.12rem; transform: rotate(45deg); }
+  .hive-mark::before { content: ""; height: 1.16rem; width: 1.16rem; border-radius: 50%; background: repeating-linear-gradient(90deg, #edb93e 0 3px, var(--forest) 3px 6px); }
+  .hive-mark::after { content: ""; position: absolute; top: -0.35rem; left: 0.94rem; height: 0.43rem; width: 0.92rem; border-radius: 99px 99px 0 0; background: #e7f3d8; box-shadow: -0.7rem 0.7rem 0 #e7f3d8; opacity: 0.92; }
+  .hive-mark > span { transform: rotate(-45deg); }
+  .atlas-nav-group { margin-top: 1.1rem; }
+  .atlas-nav-label { margin: 0 0.55rem 0.45rem; color: #8faf94; font-size: 0.58rem; font-weight: 800; letter-spacing: 0.1em; }
+  .atlas-nav { display: flex; min-height: 2.5rem; width: 100%; align-items: center; gap: 0.62rem; border: 0; border-radius: 0.5rem; padding: 0 0.62rem; background: transparent; color: #c1d1c1; text-align: left; font-size: 0.76rem; font-weight: 650; transition: background-color 160ms var(--ease-out), color 160ms var(--ease-out), transform 160ms var(--ease-out); }
+  .atlas-nav:hover { background: rgb(239 249 230 / 11%); color: #fff; }
+  .atlas-nav:active { transform: scale(0.985); }
+  .atlas-nav[data-active="true"] { box-shadow: inset 3px 0 var(--honey); background: rgb(239 249 230 / 11%); color: #fff; }
+  .atlas-nav-badge { margin-left: auto; border-radius: 0.35rem; padding: 0.12rem 0.34rem; background: #e1a42e; color: #433312; font-size: 0.61rem; font-weight: 800; }
+  .atlas-primary { display: inline-flex; min-height: 2.55rem; align-items: center; justify-content: center; gap: 0.45rem; border: 0; border-radius: 0.48rem; padding: 0.6rem 0.72rem; background: var(--honey); color: #49360f; font-size: 0.72rem; font-weight: 800; box-shadow: 0 6px 12px rgb(213 150 34 / 20%); transition: transform 160ms var(--ease-out), background-color 160ms var(--ease-out); }
+  .atlas-primary:hover { background: #c88618; }
+  .atlas-primary:active { transform: scale(0.97); }
+  .atlas-secondary { display: inline-flex; min-height: 2.3rem; align-items: center; justify-content: center; gap: 0.4rem; border: 1px solid var(--line); border-radius: 0.45rem; padding: 0.48rem 0.62rem; background: #fbfcf7; color: #526b55; font-size: 0.68rem; font-weight: 750; transition: background-color 160ms var(--ease-out), transform 160ms var(--ease-out); }
+  .atlas-secondary:hover { background: #f0f5eb; }
+  .atlas-secondary:active { transform: scale(0.97); }
+  .atlas-stat { min-height: 6.9rem; padding: 0.85rem; }
+  .atlas-stat-icon { display: grid; height: 1.9rem; width: 1.9rem; place-items: center; border-radius: 0.55rem; }
+  .atlas-map { position: relative; height: 31.625rem; overflow: hidden; border-radius: 0.78rem; background: #d7e5cc; }
+  .atlas-map .gm-style { font-family: inherit; }
+  .map-notice { position: absolute; z-index: 5; left: 0.75rem; top: 0.75rem; max-width: 15rem; border: 1px solid #e3e8dd; border-radius: 0.4rem; padding: 0.45rem 0.58rem; background: rgb(255 253 250 / 92%); box-shadow: 0 3px 12px rgb(40 62 39 / 13%); color: #536453; font-size: 0.65rem; }
+  .map-caption { position: absolute; z-index: 5; bottom: 0.55rem; right: 0.65rem; border-radius: 0.28rem; padding: 0.25rem 0.42rem; background: rgb(255 255 255 / 84%); color: #627562; font-size: 0.56rem; }
+  .role-card { min-height: 7.25rem; border: 1px solid #dce7d7; border-radius: 0.72rem; background: linear-gradient(145deg, #fbfdf9, #f0f6ea); padding: 0.9rem; transition: border-color 160ms var(--ease-out), transform 160ms var(--ease-out), box-shadow 160ms var(--ease-out); }
+  .role-card:hover { border-color: #bcd9ba; box-shadow: 0 12px 22px -18px rgb(36 63 45 / 35%); transform: translateY(-2px); }
+  .sidebar-note { margin-top: auto; border: 1px solid rgb(255 255 255 / 11%); border-radius: 0.64rem; padding: 0.75rem 0.62rem; background: rgb(255 255 255 / 6%); }
+  .atlas-modal-scrim { position: fixed; inset: 0; z-index: 60; display: grid; place-items: center; padding: 1rem; background: rgb(25 45 29 / 45%); backdrop-filter: blur(2px); }
+  .atlas-modal { position: relative; max-height: 90vh; width: min(32rem, calc(100% - 1.5rem)); overflow: auto; border: 1px solid #e3e5db; border-radius: 0.94rem; padding: 1.4rem; background: #fffefa; box-shadow: 0 26px 75px rgb(22 45 28 / 30%); }
+  .atlas-input { width: 100%; margin-top: 0.34rem; border: 1px solid #d8e1d4; border-radius: 0.45rem; padding: 0.55rem 0.6rem; background: #fcfdf9; color: #334d37; font-size: 0.75rem; }
+  .atlas-input:focus { border-color: #b9ceaa; outline: none; }
+  .atlas-toast { position: fixed; bottom: 1.5rem; left: 50%; z-index: 80; max-width: calc(100% - 2rem); border-radius: 0.5rem; padding: 0.68rem 0.84rem; background: var(--forest); color: #fff; box-shadow: 0 12px 30px rgb(0 0 0 / 20%); font-size: 0.76rem; transform: translateX(-50%); }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .atlas-fade { animation: atlas-fade 300ms var(--ease-out) both; }
+  .atlas-fade-1 { animation-delay: 45ms; }
+  .atlas-fade-2 { animation-delay: 90ms; }
+  @keyframes atlas-fade { from { opacity: 0; transform: translateY(7px); } to { opacity: 1; transform: translateY(0); } }
+}
+
+@media (max-width: 1100px) { .atlas-sidebar { width: 15.2rem; flex-basis: 15.2rem; } .atlas-map { height: 28rem; } }
+@media (max-width: 720px) {
+  .atlas-sidebar { position: fixed; left: 0; transform: translateX(-100%); width: 17rem; transition: transform 220ms var(--ease-out); }
+  .atlas-sidebar[data-open="true"] { transform: translateX(0); }
+  .atlas-map { height: 25.5rem; }
+}
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: 1ms !important; transition-duration: 1ms !important; } }
+
+/* The source reference is isolated so its original CSS and JavaScript run unchanged. */
+.reference-app-root { min-height: 100dvh; width: 100%; background: var(--cream); }
+.reference-app-frame { display: block; height: 100dvh; min-height: 640px; width: 100%; border: 0; background: var(--cream); }

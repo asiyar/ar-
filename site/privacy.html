@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>ARICIMAP — Gizlilik Politikası</title>
+<style>
+  :root{--forest:#263f2d;--honey:#d59622;--cream:#f7f4eb;--ink:#2d3a2d;--muted:#6c7a6c;--line:#e0e4d9}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--cream);color:var(--ink);font:16px/1.65 system-ui,-apple-system,"Segoe UI",sans-serif}
+  header{background:var(--forest);color:#edf3e8;padding:34px 22px}
+  .wrap{max-width:760px;margin:0 auto}
+  header h1{margin:0;font-size:26px;letter-spacing:-.4px}
+  header p{margin:8px 0 0;color:#b9cbb8;font-size:14px}
+  main{padding:34px 22px 70px}
+  h2{margin:34px 0 10px;font-size:19px;color:var(--forest)}
+  h2:first-child{margin-top:0}
+  p,li{color:#3d4c3e}
+  table{width:100%;border-collapse:collapse;margin:14px 0;font-size:14px}
+  th,td{padding:10px;border:1px solid var(--line);text-align:left;vertical-align:top}
+  th{background:#eef3e8;color:var(--forest)}
+  .note{margin:26px 0;padding:14px 16px;border-left:4px solid var(--honey);background:#fff9e8;font-size:14px}
+  footer{padding:22px;border-top:1px solid var(--line);color:var(--muted);font-size:13px}
+  a{color:#2f6b45}
+</style>
+</head>
+<body>
+<header><div class="wrap">
+  <h1>ARICIMAP — Gizlilik Politikası</h1>
+  <p>Son güncelleme: 28 Ağustos 2026</p>
+</div></header>
+
+<main><div class="wrap">
+
+<h2>Özet</h2>
+<p>ARICIMAP, arıcıların arılık konumlarını takip etmesi ve saha koordinasyonu yapması için tasarlanmış bir uygulamadır. Uygulama <strong>hesap açmanızı gerektirmez</strong> ve girdiğiniz veriler <strong>yalnızca kendi cihazınızda</strong> saklanır. ARICIMAP'in bu verileri toplayan bir sunucusu yoktur.</p>
+
+<h2>Hangi veriler işleniyor</h2>
+<table>
+  <tr><th>Veri</th><th>Ne zaman</th><th>Nerede saklanıyor</th></tr>
+  <tr>
+    <td>Konum (enlem/boylam)</td>
+    <td>Yalnızca “GPS konumum” veya “Konumumu paylaş” düğmesine bastığınızda</td>
+    <td>Cihazınızın yerel depolamasında</td>
+  </tr>
+  <tr>
+    <td>Arılık kayıtları, kovan sayısı, saha notları, denetim kayıtları</td>
+    <td>Siz girdiğinizde</td>
+    <td>Cihazınızın yerel depolamasında</td>
+  </tr>
+  <tr>
+    <td>Arıcı ve personel adları</td>
+    <td>Siz girdiğinizde</td>
+    <td>Cihazınızın yerel depolamasında</td>
+  </tr>
+</table>
+
+<div class="note">
+  <strong>Arka planda konum takibi yapılmaz.</strong> Uygulama kapalıyken veya arka plandayken konumunuza erişmez. Konum izni yalnızca siz açıkça bir konum işlemi başlattığınızda kullanılır.
+</div>
+
+<h2>Verilerin cihazdan çıktığı tek durum</h2>
+<p>Uygulama harita görüntüsü için iki dış hizmete istek gönderir:</p>
+<ul>
+  <li><strong>OpenStreetMap</strong> — harita karolarını yüklemek için. Görüntülediğiniz harita alanının koordinatları OpenStreetMap sunucularına iletilir. <a href="https://osmfoundation.org/wiki/Privacy_Policy" target="_blank" rel="noreferrer">OSMF gizlilik politikası</a></li>
+  <li><strong>Nominatim</strong> — il sınırı geometrisini almak için. Yalnızca idari sınır sorgusu yapılır.</li>
+</ul>
+<p>Bu istekler dışında hiçbir veri cihazınızdan ayrılmaz. Arılık kayıtlarınız, notlarınız ve kaydettiğiniz konumlar hiçbir sunucuya gönderilmez.</p>
+
+<h2>Toplanmayan veriler</h2>
+<ul>
+  <li>Reklam kimliği veya izleme tanımlayıcısı kullanılmaz.</li>
+  <li>Analitik veya kullanım istatistiği toplanmaz.</li>
+  <li>Üçüncü taraf reklam ağı bulunmaz.</li>
+  <li>Kişi listesi, fotoğraf galerisi, mikrofon veya sağlık verisine erişilmez.</li>
+</ul>
+
+<h2>Verilerinizi silme</h2>
+<p>Uygulama içindeki kenar çubuğunda bulunan <strong>“Sıfırla”</strong> bağlantısı, cihazda saklanan tüm ARICIMAP verilerini kalıcı olarak siler. Uygulamayı cihazınızdan kaldırmanız da aynı sonucu verir. Silinen veriler geri getirilemez; ARICIMAP'te sizin adınıza tutulan bir kopya bulunmadığı için ayrıca bir silme talebi göndermenize gerek yoktur.</p>
+
+<h2>Çocukların gizliliği</h2>
+<p>ARICIMAP genel kullanıma yönelik bir saha aracıdır ve çocuklara yönelik değildir. Bilerek çocuklardan veri toplamaz.</p>
+
+<h2>Bu politikadaki değişiklikler</h2>
+<p>Politika güncellendiğinde bu sayfadaki tarih değiştirilir. Uygulamanın veri davranışını değiştiren bir güncelleme yapılırsa, mağaza sürüm notlarında da belirtilir.</p>
+
+<h2>İletişim</h2>
+<p>Gizlilikle ilgili sorular için: <a href="mailto:muratvet21@gmail.com">muratvet21@gmail.com</a></p>
+
+</div></main>
+
+<footer><div class="wrap">ARICIMAP · Arcadian Store · Harita verisi © OpenStreetMap katkıda bulunanları</div></footer>
+</body>
+</html>

@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="tr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#263f2d" />
+    <title>ARICIMAP Gizlilik Politikası</title>
+    <style>
+      :root { --forest:#263f2d; --honey:#d59622; --cream:#f7f4eb; --ink:#2d3a2d; --muted:#627362; --line:#dfe5da; }
+      * { box-sizing: border-box; }
+      body { margin:0; color:var(--ink); background:var(--cream); font:16px/1.65 system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; }
+      header { padding:44px 22px 34px; background:var(--forest); color:white; }
+      .brand { max-width:820px; margin:auto; display:flex; gap:12px; align-items:center; font-weight:800; letter-spacing:.11em; }
+      .mark { width:32px; height:32px; border:2px solid var(--honey); border-radius:11px; transform:rotate(45deg); }
+      .wrap { width:min(820px, calc(100% - 32px)); margin:34px auto 70px; }
+      article { padding:26px; border:1px solid var(--line); border-radius:18px; background:#fffdfa; box-shadow:0 12px 30px rgba(35,61,41,.06); }
+      h1 { margin:18px 0 4px; font-size:clamp(2rem,5vw,3.3rem); line-height:1; letter-spacing:-.05em; }
+      h2 { margin:30px 0 8px; font-size:1.2rem; letter-spacing:-.02em; }
+      p, li { color:#455a46; }
+      a { color:#2e7248; font-weight:700; }
+      .note { margin:18px 0; padding:14px 16px; border-left:4px solid var(--honey); border-radius:8px; background:#fff7dc; color:#65541f; }
+      table { width:100%; border-collapse:collapse; margin:14px 0; font-size:.92rem; }
+      th, td { padding:10px; border-bottom:1px solid var(--line); text-align:left; vertical-align:top; }
+      th { color:var(--forest); }
+      footer { margin-top:22px; color:var(--muted); font-size:.86rem; }
+    </style>
+  </head>
+  <body>
+    <header><div class="brand"><span class="mark" aria-hidden="true"></span> ARICIMAP</div><div class="wrap"><h1>Gizlilik Politikası</h1><p style="color:#c5d5c4;margin:0">Son güncelleme: 24 Ağustos 2026</p></div></header>
+    <main class="wrap"><article>
+      <p>ARICIMAP, arıcıların arılık konumlarını ve saha kayıtlarını kendi rızalarıyla düzenlemesine yardımcı olur. Bu politika, uygulamanın ücretsiz OpenStreetMap/Leaflet haritası ve konum özelliğini nasıl kullandığını açıklar.</p>
+      <div class="note"><strong>Önemli:</strong> ARICIMAP arka planda konum izlemez. Konum yalnızca kullanıcı <em>“GPS”</em> veya <em>“Konumumu paylaş”</em> eylemini başlattığında ve cihaz izni verdiğinde istenir.</div>
+      <h2>İşlenen bilgiler</h2>
+      <table><thead><tr><th>Bilgi</th><th>Ne zaman kullanılır</th><th>Amaç</th></tr></thead><tbody>
+        <tr><td>Yaklaşık veya hassas cihaz konumu</td><td>Kullanıcı GPS düğmesini seçtiğinde ve izin verdiğinde</td><td>Arılığı haritada işaretlemek veya gönüllü konum paylaşımını kaydetmek</td></tr>
+        <tr><td>Arılık adı, arıcı adı, kovan sayısı ve saha notu</td><td>Kullanıcı kayıt/denetim formunu doldurduğunda</td><td>Arılık ve saha kaydını göstermek</td></tr>
+        <tr><td>Telefon numarası</td><td>Yalnızca kullanıcı gönüllü paylaşım formuna eklerse</td><td>Topluluk koordinasyonu için kullanıcı tarafından sağlanan iletişim bilgisi</td></tr>
+        <tr><td>Personel başvuru adı ve iletişim bilgisi</td><td>Kullanıcı yerel personel erişim başvurusunu gönderdiğinde</td><td>Yerel demo kapsamında yönetici onayı ve saha atamasını göstermek</td></tr>
+        <tr><td>Konaklama talebi açıklaması ve seçilen konum</td><td>Kullanıcı gezginci arıcı konaklama talebi oluşturduğunda</td><td>Yerel demo kapsamında talep durumu ve saha koordinasyonunu göstermek</td></tr>
+      </tbody></table>
+      <h2>Konum ve harita</h2>
+      <p>Uygulama ücretsiz <a href="https://www.openstreetmap.org/" target="_blank" rel="noreferrer">OpenStreetMap</a> harita karolarını ve Leaflet açık kaynak kütüphanesini kullanır. Harita yüklenirken seçilen harita sağlayıcısı teknik olarak cihazın IP adresi ve istenen harita karo bilgisini işleyebilir. Bu kullanım, harita işlevini göstermek için gereklidir.</p>
+      <p>Konum izni verilmezse uygulama çalışmaya devam eder; kullanıcı arılık noktasını haritada manuel olarak seçebilir. Uygulama arka plan konum izni istemez ve konumu reklam hedefleme amacıyla kullanmaz.</p>
+      <h2>Veri saklama ve silme</h2>
+      <p>Mevcut ücretsiz sürümde arılık, denetim, gönüllü paylaşım, yerel personel başvurusu/ataması ve konaklama talebi kayıtları cihazın yerel uygulama alanında tutulur. Kullanıcı uygulama içindeki <em>“Sıfırla”</em> seçeneğiyle kayıtları silebilir; uygulamanın kaldırılması da cihazdaki yerel veriyi siler. Bu özellikler çok kullanıcılı sunucu, gerçek yetkilendirme veya bulut eşitleme sağlamaz. Hesap ve bulut eşitleme özelliği ileride eklenirse, bu politika saklama süresi ve silme talebi akışıyla güncellenecektir.</p>
+      <h2>Reklam ve üçüncü taraflar</h2>
+      <p>ARICIMAP kişiselleştirilmiş reklam için konum verisi kullanmaz. Uygulama içindeki sponsor alanı yalnızca yönetici tarafından onaylanmış içerikler için ayrılmıştır; üçüncü taraf reklam ağları veya davranışsal reklam izleyicileri bu sürümde kullanılmaz.</p>
+      <h2>İletişim</h2>
+      <p>Gizlilik, veri silme veya destek talepleri için <a href="mailto:muratvet21@gmail.com">muratvet21@gmail.com</a> adresine ulaşabilirsiniz.</p>
+      <footer>Bu politika, ARICIMAP’in mağaza sürümü için yayın öncesi güncellenebilir. Uygulamanın veri işleme biçiminde önemli bir değişiklik olursa bu sayfanın tarihi yenilenir.</footer>
+    </article></main>
+  </body>
+</html>
