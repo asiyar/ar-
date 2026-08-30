@@ -91,6 +91,16 @@ export async function districtForPoint(lat: number, lng: number): Promise<Distri
   return districts.find((d) => pointInDistrict(lng, lat, d)) || null;
 }
 
+/** Sınırları yüklenmiş iller. Arayüz bunu il seçicisinde kullanır. */
+export async function listProvinces(): Promise<{ province: string; count: number }[]> {
+  const districts = await loadDistricts();
+  const sayac = new Map<string, number>();
+  districts.forEach((d) => sayac.set(d.province, (sayac.get(d.province) || 0) + 1));
+  return Array.from(sayac.entries())
+    .map(([province, count]) => ({ province, count }))
+    .sort((a, b) => a.province.localeCompare(b.province, "tr"));
+}
+
 export async function listDistricts(province?: string): Promise<{ province: string; name: string }[]> {
   const districts = await loadDistricts();
   return districts

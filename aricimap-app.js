@@ -10,7 +10,11 @@
   "use strict";
 
   var api = window.aricimapApi;
-  var DIYARBAKIR = [38.081472, 40.429777];
+  // Uygulama Türkiye geneline açıktır; harita ülke görünümüyle başlar ve
+  // kullanıcının kendi kayıtları geldiğinde onlara yakınlaşır.
+  var TURKIYE_MERKEZ = [39.0, 35.2];
+  var TURKIYE_ZOOM = 6;
+  var TR_ILLER = ['Adana','Adıyaman','Afyonkarahisar','Ağrı','Aksaray','Amasya','Ankara','Antalya','Ardahan','Artvin','Aydın','Balıkesir','Bartın','Batman','Bayburt','Bilecik','Bingöl','Bitlis','Bolu','Burdur','Bursa','Çanakkale','Çankırı','Çorum','Denizli','Diyarbakır','Düzce','Edirne','Elazığ','Erzincan','Erzurum','Eskişehir','Gaziantep','Giresun','Gümüşhane','Hakkari','Hatay','Iğdır','Isparta','İstanbul','İzmir','Kahramanmaraş','Karabük','Karaman','Kars','Kastamonu','Kayseri','Kilis','Kırıkkale','Kırklareli','Kırşehir','Kocaeli','Konya','Kütahya','Malatya','Manisa','Mardin','Mersin','Muğla','Muş','Nevşehir','Niğde','Ordu','Osmaniye','Rize','Sakarya','Samsun','Şanlıurfa','Siirt','Sinop','Sivas','Şırnak','Tekirdağ','Tokat','Trabzon','Tunceli','Uşak','Van','Yalova','Yozgat','Zonguldak'];
 
   var state = {
     user: null,
@@ -243,7 +247,7 @@
 
   function ensureMap() {
     if (state.map || !window.L) return state.map;
-    state.map = L.map("map", { zoomControl: true }).setView(DIYARBAKIR, 9);
+    state.map = L.map("map", { zoomControl: true }).setView(TURKIYE_MERKEZ, TURKIYE_ZOOM);
     L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
       maxZoom: 19,
       attribution: "© OpenStreetMap katkıda bulunanları",
@@ -927,7 +931,7 @@
     page.innerHTML =
       '<div class="card"><div class="overline">Not defteri</div>' +
       '<p class="muted" style="margin:6px 0 12px">Bu notlar yalnızca sana görünür. Başka personel ve yönetici göremez.</p>' +
-      '<label>Başlık<input id="noteTitle" placeholder="Örn: Kulp turu" /></label>' +
+      '<label>Başlık<input id="noteTitle" placeholder="Örn: haftalık saha turu" /></label>' +
       '<label>İçerik<textarea id="noteBody" placeholder="Tespit sırasında aklında kalanları buraya yaz."></textarea></label>' +
       '<button class="btn full" id="noteAdd">Not ekle</button></div>' +
       '<div class="card"><div class="overline">Kayıtlı notlar</div>' +
@@ -1000,14 +1004,22 @@
       '<div id="appList"><div class="empty">Yükleniyor…</div></div></div>' +
       '<div class="card"><div class="overline">İlçe sınırları</div>' +
       '<p class="muted" style="margin:6px 0 10px">Bildirimlerin doğru personele gitmesi için ilçe sınırlarının bir kez yüklenmesi gerekir.</p>' +
-      '<div class="row"><input id="syncProvince" value="Diyarbakır" class="grow" />' +
-      '<button class="btn" id="syncBtn">Yükle</button></div>' +
+      '<div class="row"><select id="syncProvince" class="grow"><option value="">İl seç…</option>' +
+      TR_ILLER.map(function (il) {
+        return '<option value="' + esc(il) + '">' + esc(il) + "</option>";
+      }).join("") +
+      '</select><button class="btn" id="syncBtn">Yükle</button></div>' +
+      '<div id="yukluIller" class="muted" style="margin-top:8px"></div>' +
       '<p class="muted" style="margin:9px 0 0" id="syncInfo"></p></div>' +
       '<div class="card"><div class="overline">Duyuru yayınla</div>' +
       '<label>Başlık<input id="duyuruTitle" /></label>' +
       '<label>İçerik<textarea id="duyuruBody"></textarea></label>' +
       '<label>Önem<select id="duyuruLevel"><option value="bilgi">Bilgi</option>' +
       '<option value="uyari">Uyarı</option><option value="acil">Acil</option></select></label>' +
+      '<label>Kapsam<select id="duyuruIl"><option value="">Türkiye geneli</option>' +
+      TR_ILLER.map(function (il) { return '<option value="' + esc(il) + '">' + esc(il) + "</option>"; }).join("") +
+      "</select></label>" +
+      '<label>İlçe (boş bırakılırsa il geneli)<select id="duyuruIlce"><option value="">İl geneli</option></select></label>' +
       '<button class="btn full" id="duyuruAdd">Yayınla</button>' +
       '<div id="duyuruYonetim" style="margin-top:12px"></div></div>' +
       '<div class="card"><div class="overline">Reklam panosu</div>' +
@@ -1023,13 +1035,16 @@
       '<div id="adList" style="margin-top:12px"></div></div>';
 
     $("syncBtn").onclick = function () {
-      var il = $("syncProvince").value.trim() || "Diyarbakır";
+      var il = $("syncProvince").value;
+      if (!il) return toast("Önce bir il seç.");
       $("syncInfo").textContent = "OpenStreetMap'ten alınıyor, bu biraz sürebilir…";
       api
         .syncDistricts(il)
         .then(function (result) {
           $("syncInfo").textContent =
-            result.saved + " ilçe kaydedildi" + (result.skipped ? ", " + result.skipped + " atlandı" : "") + ".";
+            il + ": " + result.saved + " ilçe kaydedildi" +
+            (result.skipped ? ", " + result.skipped + " atlandı" : "") + ".";
+          loadProvinces();
           return loadDistricts();
         })
         .catch(function (error) {
@@ -1045,6 +1060,8 @@
           title: title,
           body: $("duyuruBody").value.trim(),
           level: $("duyuruLevel").value,
+          province: $("duyuruIl").value || null,
+          district: $("duyuruIlce").value || null,
         })
         .then(function () {
           $("duyuruTitle").value = "";
@@ -1081,10 +1098,41 @@
         .catch(bildirHata);
     };
 
+    // Duyuru kapsamı seçilen ile göre ilçe listesini doldurur.
+    $("duyuruIl").onchange = function () {
+      var il = $("duyuruIl").value;
+      var sel = $("duyuruIlce");
+      sel.innerHTML = '<option value="">İl geneli</option>';
+      if (!il) return;
+      api
+        .districts(il)
+        .then(function (list) {
+          sel.innerHTML =
+            '<option value="">İl geneli</option>' +
+            list.map(function (d) { return '<option value="' + esc(d.name) + '">' + esc(d.name) + "</option>"; }).join("");
+          if (!list.length) sel.innerHTML = '<option value="">İl geneli (ilçe sınırları yüklenmemiş)</option>';
+        })
+        .catch(function () {});
+    };
+
     loadDistricts();
+    loadProvinces();
     loadApplications();
     loadDuyuruYonetim();
     loadAdYonetim();
+  }
+
+  function loadProvinces() {
+    api
+      .provinces()
+      .then(function (list) {
+        var box = $("yukluIller");
+        if (!box) return;
+        box.textContent = list.length
+          ? "Sınırları yüklü iller: " + list.map(function (p) { return p.province + " (" + p.count + ")"; }).join(", ")
+          : "Henüz hiçbir ilin sınırları yüklenmedi. Bildirimlerin ilçeye atanabilmesi için en az bir il yükleyin.";
+      })
+      .catch(function () {});
   }
 
   function loadDuyuruYonetim() {
@@ -1222,10 +1270,13 @@
               '<select data-area="' + esc(a.id) + '" class="grow"><option value="">Bölge seç…</option>' +
               state.districts
                 .map(function (d) {
+                  // Değerde il de taşınır; aksi hâlde aynı adlı ilçeler karışır
+                  // ve onayda yanlış il yazılır.
+                  var deger = d.province + "|" + d.name;
                   return (
-                    '<option value="' + esc(d.name) + '"' +
-                    (a.district === d.name ? " selected" : "") +
-                    ">" + esc(d.name) + "</option>"
+                    '<option value="' + esc(deger) + '"' +
+                    (a.district === d.name && a.province === d.province ? " selected" : "") +
+                    ">" + esc(d.name) + " (" + esc(d.province) + ")</option>"
                   );
                 })
                 .join("") +
@@ -1241,10 +1292,11 @@
         Array.prototype.forEach.call(box.querySelectorAll("[data-ok]"), function (b) {
           b.onclick = function () {
             var sel = box.querySelector('[data-area="' + b.dataset.ok + '"]');
-            var district = sel ? sel.value : "";
-            if (!district) return toast("Önce sorumlu olacağı bölgeyi seç.");
+            var deger = sel ? sel.value : "";
+            if (!deger) return toast("Önce sorumlu olacağı bölgeyi seç.");
+            var parca = deger.split("|");
             api
-              .decideApplication(b.dataset.ok, true, { province: "Diyarbakır", district: district })
+              .decideApplication(b.dataset.ok, true, { province: parca[0], district: parca[1] })
               .then(function () {
                 toast("Yetki tanımlandı.");
                 loadApplications();
@@ -1286,11 +1338,14 @@
         ? '<div class="card"><div class="overline">Personel yetki başvurusu</div>' +
           '<p class="muted" style="margin:6px 0 12px">Kurum personeliysen bilgilerini gönder. Yönetici doğruladıktan sonra bölgendeki arıcıların konum ve iletişim bilgilerine erişebilirsin.</p>' +
           '<div id="applyMsg"></div>' +
-          '<label>Kurum adı<input id="apInstitution" placeholder="Örn: Diyarbakır İl Tarım ve Orman Müdürlüğü" /></label>' +
+          '<label>Kurum adı<input id="apInstitution" placeholder="Örn: İl Tarım ve Orman Müdürlüğü" /></label>' +
           '<label>Unvan<input id="apTitle" placeholder="Örn: Veteriner Hekim" /></label>' +
           '<label>Ad soyad<input id="apName" value="' + esc(u.name) + '" /></label>' +
           '<label>Kurum e-postası<input id="apEmail" type="email" placeholder="ad.soyad@kurum.gov.tr" /></label>' +
-          '<label>Sorumlu olmak istediğin ilçe<input id="apDistrict" placeholder="Örn: Kulp" /></label>' +
+          '<label>Sorumlu olmak istediğin il<select id="apProvince"><option value="">İl seç…</option>' +
+          TR_ILLER.map(function (il) { return '<option value="' + esc(il) + '">' + esc(il) + "</option>"; }).join("") +
+          "</select></label>" +
+          '<label>İlçe<select id="apDistrict"><option value="">Önce il seç</option></select></label>' +
           '<button class="btn full" id="applyBtn">Başvuruyu gönder</button></div>'
         : "") +
       '<div class="card"><button class="btn ghost full" id="hesapCikis">Çıkış yap</button></div>';
@@ -1300,6 +1355,30 @@
     };
 
     if (basvurabilir) {
+      // İlçe listesi yalnızca sınırları yüklenmiş iller için doludur.
+      $("apProvince").onchange = function () {
+        var il = $("apProvince").value;
+        var sel = $("apDistrict");
+        sel.innerHTML = '<option value="">Yükleniyor…</option>';
+        if (!il) {
+          sel.innerHTML = '<option value="">Önce il seç</option>';
+          return;
+        }
+        api
+          .districts(il)
+          .then(function (list) {
+            sel.innerHTML = list.length
+              ? '<option value="">İlçe seç…</option>' +
+                list.map(function (d) {
+                  return '<option value="' + esc(d.name) + '">' + esc(d.name) + "</option>";
+                }).join("")
+              : '<option value="">Bu ilin ilçeleri henüz yüklenmemiş</option>';
+          })
+          .catch(function () {
+            sel.innerHTML = '<option value="">İlçeler alınamadı</option>';
+          });
+      };
+
       $("applyBtn").onclick = function () {
         api
           .applyForStaff({
@@ -1307,7 +1386,8 @@
             institution: $("apInstitution").value.trim(),
             title: $("apTitle").value.trim(),
             institutionEmail: $("apEmail").value.trim(),
-            district: $("apDistrict").value.trim(),
+            province: $("apProvince").value,
+            district: $("apDistrict").value,
           })
           .then(function () {
             $("applyMsg").innerHTML =

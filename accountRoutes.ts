@@ -7,6 +7,7 @@
 import type { Express, Request, Response, NextFunction } from "express";
 import {
   createAnnouncement,
+  announcementsFor,
   listAnnouncements,
   setAnnouncementActive,
   deleteAnnouncement,
@@ -39,6 +40,7 @@ import {
 } from "./fieldwork";
 import {
   listDistricts,
+  listProvinces,
   syncProvince,
 } from "./districts";
 import {
@@ -117,6 +119,36 @@ function asText(value: unknown): string {
 }
 
 export function registerAccountRoutes(app: Express) {
+  /**
+   * Native kabuk (APK/IPA) sayfayı capacitor://localhost veya https://localhost
+   * üzerinden sunar; sunucuya yapılan her istek çapraz kökenlidir. CORS başlığı
+   * olmadan tarayıcı isteği engeller ve uygulama sunucuya hiç ulaşamaz.
+   *
+   * Kimlik jetonu Authorization/x-aricimap-token başlığında taşındığı için
+   * çerez gönderilmez; bu yüzden credentials açılmaz ve köken listesi dar tutulur.
+   */
+  const allowedOrigins = [
+    "capacitor://localhost",
+    "ionic://localhost",
+    "http://localhost",
+    "https://localhost",
+  ];
+  app.use("/api/aricimap", (req, res, next) => {
+    const origin = req.header("origin");
+    if (origin && (allowedOrigins.includes(origin) || /^https?:\/\/localhost(:\d+)?$/.test(origin))) {
+      res.setHeader("Access-Control-Allow-Origin", origin);
+      res.setHeader("Vary", "Origin");
+      res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization, x-aricimap-token");
+      res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE, OPTIONS");
+      res.setHeader("Access-Control-Max-Age", "86400");
+    }
+    if (req.method === "OPTIONS") {
+      res.sendStatus(204);
+      return;
+    }
+    next();
+  });
+
   app.use("/api/aricimap", attachUser);
 
   /** Barındırma uykudan uyanırken istemcinin bekleme ekranını göstermesi için. */
@@ -206,6 +238,10 @@ export function registerAccountRoutes(app: Express) {
   });
 
   /** İlçe listesi. Harita ve personel ataması bunu kullanır. */
+  app.get("/api/aricimap/provinces", async (_req, res) => {
+    res.json({ provinces: await listProvinces() });
+  });
+
   app.get("/api/aricimap/districts", async (req, res) => {
     const province = typeof req.query.province === "string" ? req.query.province : undefined;
     res.json({ districts: await listDistricts(province) });
@@ -216,7 +252,11 @@ export function registerAccountRoutes(app: Express) {
    * Her açılışta çalıştırılmaz: Overpass tekrarlı otomatik sorguları kısıtlar.
    */
   app.post("/api/aricimap/districts/sync", requireUser, requireAdmin, async (req, res) => {
-    const province = asText(req.body?.province) || "Diyarbakır";
+    const province = asText(req.body?.province);
+    if (!province) {
+      res.status(400).json({ error: "Hangi ilin sınırlarının yükleneceğini belirtin." });
+      return;
+    }
     try {
       const result = await syncProvince(province);
       res.json({ province, ...result });
@@ -428,9 +468,18 @@ export function registerAccountRoutes(app: Express) {
   // --- Duyurular (herkese açık) --------------------------------------------
 
   app.get("/api/aricimap/announcements", requireUser, async (req: AuthedRequest, res) => {
-    // Yönetici pasifleri de görür, diğerleri yalnızca yayındakileri.
-    const onlyActive = req.user!.role !== "yonetici";
-    res.json({ announcements: await listAnnouncements(onlyActive) });
+    // Yönetici bütün duyuruları (pasifler dahil) yönetim için görür.
+    // Diğerleri yalnızca kendi bölgelerini ilgilendiren yayındaki duyuruları.
+    if (req.user!.role === "yonetici") {
+      res.json({ announcements: await listAnnouncements(false) });
+      return;
+    }
+    res.json({
+      announcements: await announcementsFor({
+        province: req.user!.province,
+        district: req.user!.district,
+      }),
+    });
   });
 
   app.post("/api/aricimap/announcements", requireUser, requireAdmin, async (req, res) => {
@@ -444,6 +493,9 @@ export function registerAccountRoutes(app: Express) {
         title,
         body: asText(req.body?.body),
         level: req.body?.level,
+        // Boş bırakılırsa duyuru Türkiye geneline yayınlanır.
+        province: asText(req.body?.province) || null,
+        district: asText(req.body?.district) || null,
       }),
     });
   });

@@ -75,6 +75,46 @@ describe("duyurular", () => {
     const d = await ctx.content.createAnnouncement({ title: "X", level: "sacma" as never });
     expect(d.level).toBe("bilgi");
   });
+
+  it("Türkiye geneli duyuru herkese gider", async () => {
+    await ctx.content.createAnnouncement({ title: "Genel duyuru" });
+    const diyarbakirli = await ctx.content.announcementsFor({ province: "Diyarbakır", district: "Kuzey" });
+    const ankarali = await ctx.content.announcementsFor({ province: "Ankara", district: null });
+    const bolgesiz = await ctx.content.announcementsFor({});
+    expect(diyarbakirli).toHaveLength(1);
+    expect(ankarali).toHaveLength(1);
+    expect(bolgesiz).toHaveLength(1);
+  });
+
+  it("il duyurusu yalnızca o ildekilere gider", async () => {
+    await ctx.content.createAnnouncement({ title: "Diyarbakır duyurusu", province: "Diyarbakır" });
+    expect(await ctx.content.announcementsFor({ province: "Diyarbakır" })).toHaveLength(1);
+    expect(await ctx.content.announcementsFor({ province: "Ankara" })).toHaveLength(0);
+    expect(await ctx.content.announcementsFor({})).toHaveLength(0);
+  });
+
+  it("ilçe duyurusu yalnızca o ilçedekilere gider", async () => {
+    await ctx.content.createAnnouncement({
+      title: "Kuzey duyurusu", province: "Diyarbakır", district: "Kuzey",
+    });
+    expect(await ctx.content.announcementsFor({ province: "Diyarbakır", district: "Kuzey" })).toHaveLength(1);
+    expect(await ctx.content.announcementsFor({ province: "Diyarbakır", district: "Guney" })).toHaveLength(0);
+    expect(await ctx.content.announcementsFor({ province: "Diyarbakır" })).toHaveLength(0);
+  });
+
+  it("il seçilmeden ilçe verilirse ilçe yok sayılır", async () => {
+    const d = await ctx.content.createAnnouncement({ title: "X", district: "Kuzey" });
+    expect(d.province).toBeNull();
+    expect(d.district).toBeNull();
+  });
+
+  it("sınırları yüklü iller listelenir", async () => {
+    const iller = await ctx.districts.listProvinces();
+    expect(iller).toHaveLength(1);
+    expect(iller[0].province).toBe("Diyarbakır");
+    expect(iller[0].count).toBe(2);
+  });
+
 });
 
 describe("reklam panosu", () => {

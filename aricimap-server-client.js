@@ -6,7 +6,25 @@
  * olduğunu anlatan bir ekran gösterir; aksi halde uygulama bozuk sanılır.
  */
 (function () {
-  const API = "/api/aricimap";
+  // Native kabukta (APK/IPA) sayfa uygulamanın kendi içinden servis edilir;
+  // göreli adres sunucuya değil telefonun içine gider ve hiçbir istek ulaşmaz.
+  // Bu yüzden kabuk içindeyken mutlak adres kullanılır.
+  const REMOTE_API = "https://ar-3q6i.onrender.com";
+
+  function resolveBase() {
+    if (window.ARICIMAP_API_BASE) return String(window.ARICIMAP_API_BASE).replace(/\/+$/, "");
+    const loc = window.location;
+    const nativeShell =
+      loc.protocol === "capacitor:" ||
+      loc.protocol === "file:" ||
+      // Capacitor Android sayfayı https://localhost (portsuz) üzerinden sunar.
+      // Yerel geliştirmede ise port bulunur (localhost:3000 gibi).
+      ((loc.hostname === "localhost" || loc.hostname === "127.0.0.1") && !loc.port);
+    return nativeShell ? REMOTE_API : "";
+  }
+
+  const API_BASE = resolveBase();
+  const API = API_BASE + "/api/aricimap";
   const TOKEN_KEY = "aricimap-token";
   const WAKE_TIMEOUT_MS = 90000;
   const RETRY_DELAY_MS = 2500;
@@ -199,7 +217,8 @@
     notifications: () => request("GET", "/notifications"),
     markRead: (ids) => request("POST", "/notifications/read", { ids }),
 
-    // --- İlçeler ---
+    // --- İller ve ilçeler ---
+    provinces: () => request("GET", "/provinces").then((d) => d.provinces),
     districts: (province) =>
       request("GET", "/districts" + (province ? "?province=" + encodeURIComponent(province) : "")).then(
         (d) => d.districts,

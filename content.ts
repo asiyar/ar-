@@ -15,6 +15,9 @@ export interface Announcement {
   title: string;
   body: string;
   level: "bilgi" | "uyari" | "acil";
+  /** Boş ise duyuru Türkiye geneline yayınlanmıştır. */
+  province: string | null;
+  district: string | null;
   active: boolean;
   createdAt: string;
 }
@@ -45,9 +48,13 @@ export async function initContentSchema(): Promise<void> {
       title      TEXT NOT NULL,
       body       TEXT NOT NULL DEFAULT '',
       level      TEXT NOT NULL DEFAULT 'bilgi',
+      province   TEXT,
+      district   TEXT,
       active     BOOLEAN NOT NULL DEFAULT true,
       created_at TIMESTAMPTZ NOT NULL DEFAULT now()
     );
+    ALTER TABLE announcements ADD COLUMN IF NOT EXISTS province TEXT;
+    ALTER TABLE announcements ADD COLUMN IF NOT EXISTS district TEXT;
     CREATE TABLE IF NOT EXISTS ads (
       id          TEXT PRIMARY KEY,
       company     TEXT NOT NULL,
@@ -92,6 +99,8 @@ function toAnnouncement(row: Record<string, unknown>): Announcement {
     title: row.title as string,
     body: row.body as string,
     level: row.level as Announcement["level"],
+    province: (row.province as string) || null,
+    district: (row.district as string) || null,
     active: row.active as boolean,
     createdAt: (row.created_at as Date).toISOString(),
   };
@@ -101,14 +110,47 @@ export async function createAnnouncement(input: {
   title: string;
   body?: string;
   level?: Announcement["level"];
+  province?: string | null;
+  district?: string | null;
 }): Promise<Announcement> {
   await initContentSchema();
   const level = ["bilgi", "uyari", "acil"].includes(input.level || "") ? input.level : "bilgi";
   const result = await pool.query(
-    `INSERT INTO announcements (id, title, body, level) VALUES ($1,$2,$3,$4) RETURNING *`,
-    [newId("duyuru"), input.title, input.body || "", level],
+    `INSERT INTO announcements (id, title, body, level, province, district)
+     VALUES ($1,$2,$3,$4,$5,$6) RETURNING *`,
+    [
+      newId("duyuru"),
+      input.title,
+      input.body || "",
+      level,
+      input.province || null,
+      // İlçe, il olmadan anlamsızdır.
+      input.province ? input.district || null : null,
+    ],
   );
   return toAnnouncement(result.rows[0]);
+}
+
+/**
+ * Kullanıcıya gösterilecek duyurular.
+ *
+ * Türkiye geneli duyurular herkese gider. İl duyurusu yalnızca o ildekilere,
+ * ilçe duyurusu yalnızca o ilçedekilere. Bölgesi belirsiz kullanıcı yalnızca
+ * genel duyuruları görür.
+ */
+export async function announcementsFor(
+  scope: { province?: string | null; district?: string | null },
+): Promise<Announcement[]> {
+  await initContentSchema();
+  const result = await pool.query(
+    `SELECT * FROM announcements
+     WHERE active
+       AND (province IS NULL OR province = $1)
+       AND (district IS NULL OR district = $2)
+     ORDER BY created_at DESC LIMIT 30`,
+    [scope.province || null, scope.district || null],
+  );
+  return result.rows.map(toAnnouncement);
 }
 
 export async function listAnnouncements(onlyActive = false): Promise<Announcement[]> {
