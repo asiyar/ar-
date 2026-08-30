@@ -1,0 +1,27 @@
+# Render.com ücretsiz plan tanımı.
+#
+# Veriler Render'da DEĞİL, Neon'da (harici PostgreSQL) tutulur. Render'ın
+# ücretsiz web servisinin diski kalıcı olmadığı için bu ayrım şarttır:
+# sunucu her yeniden başladığında diski sıfırlanır ama veritabanı etkilenmez.
+#
+# DATABASE_URL değerini Render panelinden elle girin; bu dosyaya yazmayın.
+
+services:
+  - type: web
+    name: aricimap
+    runtime: node
+    plan: free
+    region: frankfurt
+    # corepack kullanilmiyor: Render'in imajinda /usr/bin salt okunur oldugu icin
+    # "corepack enable" EROFS hatasi verip derlemeyi durduruyor. npx, pnpm'i
+    # gecici dizine indirip calistirir; global kuruluma ihtiyac duymaz.
+    buildCommand: npx --yes pnpm@10.15.1 install --frozen-lockfile && npx --yes pnpm@10.15.1 run build
+    startCommand: npx --yes pnpm@10.15.1 start
+    healthCheckPath: /api/aricimap/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: NODE_VERSION
+        value: "22"
+      - key: DATABASE_URL
+        sync: false   # Panelden elle girilir, depoya yazılmaz.
