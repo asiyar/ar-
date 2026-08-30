@@ -13,13 +13,19 @@ describe("hesap ve görünürlük kuralları", () => {
     store = await freshStore();
   });
 
-  it("ilk kayıt olan kişi kurucu yönetici olur, sonrakiler onay bekler", async () => {
+  it("ilk kayıt olan kişi kurucu yönetici olur", async () => {
     const first = await store.registerUser("Murat", "05551110001", "gizli123");
-    const second = await store.registerUser("Ahmet", "05551110002", "parola123");
     expect("user" in first && first.user.role).toBe("yonetici");
     expect("user" in first && first.user.status).toBe("onayli");
+  });
+
+  it("sonraki kayıtlar arıcı olur ve onay beklemeden kullanabilir", async () => {
+    await store.registerUser("Murat", "05551110001", "gizli123");
+    const second = await store.registerUser("Ahmet", "05551110002", "parola123");
+    // Arıcılar doğrudan girer; personel yetkisi ayrı başvuru hattından verilir.
     expect("user" in second && second.user.role).toBe("arici");
-    expect("user" in second && second.user.status).toBe("beklemede");
+    expect("user" in second && second.user.status).toBe("onayli");
+    expect("user" in second && second.user.district).toBeNull();
   });
 
   it("aynı telefon numarasıyla ikinci kayıt reddedilir", async () => {

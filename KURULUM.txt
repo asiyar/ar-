@@ -1,0 +1,50 @@
+ARICIMAP — TEK ADIMDA YERLEŞTİRME
+==================================
+
+Bu zip, deponun klasör yapısıyla birebir aynıdır. Kök dizine açınca
+her dosya kendiliğinden doğru yere gider.
+
+ADIMLAR (Codespaces)
+--------------------
+1) Depo sayfası -> Code -> Codespaces -> Create codespace
+
+2) Bu zip dosyasını sol paneldeki dosya listesine SÜRÜKLE BIRAK.
+   (Tek dosya olduğu için sorunsuz yüklenir.)
+
+3) Terminal -> New Terminal -> şunu yapıştır:
+
+cd /workspaces/ar-
+
+# Kök dizindeki yanlış yerde duran kopyaları temizle
+rm -f accountStore.ts accountRoutes.ts districts.ts notifications.ts \
+      staffApplications.ts fieldwork.ts content.ts stayRequests.ts index.ts \
+      accountStore.test.ts districts.test.ts fieldwork.test.ts content.test.ts \
+      aricimap-app.html aricimap-app.js aricimap-server-client.js \
+      Home.tsx YERLESIM.md TASIMA-KOMUTLARI.txt
+
+# Zip'i kök dizine aç (klasör yapısı korunur, üzerine yazar)
+unzip -o aricimap-yerlesim.zip
+rm -f aricimap-yerlesim.zip KURULUM.txt
+
+# Kontrol: bu iki satır dolu çıkmalı
+ls server/
+ls client/public/
+
+git add -A
+git commit -m "Dosyalari dogru klasorlere yerlestir"
+git push
+
+4) Render'da deploy'un bitmesini bekle (2-4 dakika).
+
+5) Tarayıcıda şunu aç:
+   https://ar-3q6i.onrender.com/api/aricimap/provinces
+   {"provinces":[]} görüyorsan YENİ KOD YAYINDA.
+
+6) Uygulamayı aç: https://ar-3q6i.onrender.com
+   İlk kaydolan kişi kurucu yönetici olur.
+
+7) Yönetici -> Yönetim -> İlçe sınırları -> il seç -> Yükle
+   Bu yapılmazsa bildirimler ilçeye atanamaz.
+
+8) APK'yı YENİDEN üret: Actions -> Android Test APK -> Run workflow
+   Eski APK eski kodu taşır.

@@ -7,6 +7,10 @@ import { fileURLToPath } from "url";
 import { appConfigHandler } from "./appConfig";
 import { registerAccountRoutes } from "./accountRoutes";
 import { initSchema, purgeExpiredSessions } from "./accountStore";
+import { initNotificationSchema } from "./notifications";
+import { initDistrictSchema } from "./districts";
+import { initContentSchema } from "./content";
+import { initStaySchema } from "./stayRequests";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -21,6 +25,10 @@ async function startServer() {
 
   // Tablolar ilk istekten önce hazır olsun; süresi dolmuş oturumlar temizlensin.
   initSchema()
+    .then(initDistrictSchema)
+    .then(initNotificationSchema)
+    .then(initContentSchema)
+    .then(initStaySchema)
     .then(purgeExpiredSessions)
     .catch((error) => console.error("Veritabanı hazırlanamadı:", error));
   app.get("/api/aricimap/state", async (_req, res) => {

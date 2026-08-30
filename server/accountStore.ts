@@ -23,6 +23,9 @@ export interface StoredUser {
   role: UserRole;
   status: UserStatus;
   staffCode: string | null;
+  /** Personelin sorumlu olduğu bölge. Yetki kontrolü buna bakar. */
+  province: string | null;
+  district: string | null;
   createdAt: string;
   decidedAt: string | null;
 }
@@ -75,6 +78,8 @@ export function initSchema(): Promise<void> {
         role          TEXT NOT NULL DEFAULT 'arici',
         status        TEXT NOT NULL DEFAULT 'beklemede',
         staff_code    TEXT UNIQUE,
+        province      TEXT,
+        district      TEXT,
         created_at    TIMESTAMPTZ NOT NULL DEFAULT now(),
         decided_at    TIMESTAMPTZ
       );
@@ -122,6 +127,8 @@ interface UserRow {
   role: UserRole;
   status: UserStatus;
   staff_code: string | null;
+  province: string | null;
+  district: string | null;
   created_at: Date;
   decided_at: Date | null;
 }
@@ -136,6 +143,8 @@ function toUser(row: UserRow): StoredUser {
     role: row.role,
     status: row.status,
     staffCode: row.staff_code,
+    province: row.province ?? null,
+    district: row.district ?? null,
     createdAt: row.created_at.toISOString(),
     decidedAt: row.decided_at ? row.decided_at.toISOString() : null,
   };
@@ -149,6 +158,8 @@ export function publicUser(user: StoredUser) {
     role: user.role,
     status: user.status,
     staffCode: user.staffCode,
+    province: user.province,
+    district: user.district,
     createdAt: user.createdAt,
   };
 }
@@ -182,8 +193,10 @@ export async function registerUser(name: string, phone: string, password: string
         hash,
         salt,
         first ? "yonetici" : "arici",
-        first ? "onayli" : "beklemede",
-        first ? new Date() : null,
+        // Arıcılar onay beklemez; kayıt olur olmaz konumunu paylaşabilir.
+        // Personel yetkisi ayrı bir başvuru hattından verilir.
+        "onayli",
+        new Date(),
       ],
     );
     await client.query("COMMIT");

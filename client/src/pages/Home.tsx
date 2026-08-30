@@ -7,9 +7,9 @@ export default function Home() {
     <main className="reference-app-root" aria-label="ARICIMAP arıcı saha ve arılık konum sistemi">
       <iframe
         className="reference-app-frame"
-        src="/aricimap-reference.html"
+        src="/aricimap-app.html"
         allow="geolocation"
-        title="ARICIMAP — Referans HTML Uygulaması"
+        title="ARICIMAP"
       />
     </main>
   );
