@@ -39,6 +39,14 @@ import {
   deleteNote,
 } from "./fieldwork";
 import { listDistricts, listProvinces } from "./districts";
+import {
+  changeOwnPassword,
+  adminResetPassword,
+  recoverWithKey,
+  promoteWithKey,
+  recoveryEnabled,
+  adminCount,
+} from "./recovery";
 import { ilVarMi, ilceVarMi } from "./trAdres";
 import {
   notifyArea,
@@ -632,5 +640,69 @@ export function registerAccountRoutes(app: Express) {
       return;
     }
     res.json({ request: result.request });
+  });
+
+  // --- Parola yönetimi ------------------------------------------------------
+
+  /** Kurtarma yolunun açık olup olmadığını istemci bilsin. */
+  app.get("/api/aricimap/recovery-status", (_req, res) => {
+    res.json({ enabled: recoveryEnabled() });
+  });
+
+  /** Kullanıcı kendi parolasını değiştirir. */
+  app.post("/api/aricimap/me/password", requireUser, async (req: AuthedRequest, res) => {
+    const result = await changeOwnPassword(
+      req.user!,
+      asText(req.body?.current),
+      asText(req.body?.next),
+    );
+    if ("error" in result) {
+      res.status(400).json({ error: result.error });
+      return;
+    }
+    // Parola değişince eski oturumlar kapanır; istemci yeniden giriş yapmalı.
+    res.json({ ok: true });
+  });
+
+  /** Yönetici, bir kullanıcının parolasını sıfırlar. */
+  app.post("/api/aricimap/users/:id/password", requireUser, requireAdmin, async (req, res) => {
+    const result = await adminResetPassword(req.params.id, asText(req.body?.next));
+    if ("error" in result) {
+      res.status(400).json({ error: result.error });
+      return;
+    }
+    res.json({ ok: true });
+  });
+
+  /**
+   * Kurtarma anahtarıyla parola sıfırlama. Oturum gerektirmez: zaten giriş
+   * yapamayan kişi için vardır. Anahtar yalnızca barındırma panelinden görülür.
+   */
+  app.post("/api/aricimap/recover", async (req, res) => {
+    const result = await recoverWithKey(
+      asText(req.body?.recoveryKey),
+      asText(req.body?.phone),
+      asText(req.body?.next),
+    );
+    if ("error" in result) {
+      res.status(403).json({ error: result.error });
+      return;
+    }
+    res.json({ ok: true, name: result.name, role: result.role });
+  });
+
+  /** Son çare: yönetici hesabı kalmadıysa bir hesabı yöneticiye yükseltir. */
+  app.post("/api/aricimap/recover/promote", async (req, res) => {
+    const result = await promoteWithKey(asText(req.body?.recoveryKey), asText(req.body?.phone));
+    if ("error" in result) {
+      res.status(403).json({ error: result.error });
+      return;
+    }
+    res.json({ ok: true, name: result.name });
+  });
+
+  /** Yönetici sayısı sıfırsa sistem yönetilemez; yönetici bunu görebilmeli. */
+  app.get("/api/aricimap/admin-count", requireUser, requireAdmin, async (_req, res) => {
+    res.json({ count: await adminCount() });
   });
 }

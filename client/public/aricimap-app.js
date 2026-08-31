@@ -208,6 +208,44 @@
       });
     }
 
+    $("forgotBtn").onclick = function () {
+      api
+        .recoveryStatus()
+        .then(function (acik) {
+          openSheet(
+            "<h3>Parolamı unuttum</h3>" +
+            (acik
+              ? '<p class="muted" style="margin:0 0 14px">Kurtarma anahtarı sunucu ayarlarında tanımlıdır ve yalnızca sistemi kuran kişide bulunur. Anahtarı bilmiyorsan yöneticinden parolanı sıfırlamasını iste.</p>'
+              : '<div class="error">Kurtarma kapalı. Sunucu ayarlarında ARICIMAP_RECOVERY_KEY tanımlanmamış. Yöneticinden parolanı sıfırlamasını iste.</div>') +
+            (acik
+              ? '<div class="card"><div id="recMsg"></div>' +
+                '<label>Telefon<input id="recPhone" type="tel" inputmode="numeric" autocomplete="off" /></label>' +
+                '<label>Kurtarma anahtarı<input id="recKey" type="password" autocomplete="off" /></label>' +
+                '<label>Yeni parola<input id="recNew" type="password" autocomplete="new-password" placeholder="En az 6 karakter" /></label>' +
+                '<div class="row"><button class="btn grow" id="recSubmit">Parolayı sıfırla</button>' +
+                '<button class="btn ghost" id="recClose">Kapat</button></div></div>'
+              : '<div class="card"><button class="btn ghost full" id="recClose">Kapat</button></div>'),
+          );
+          $("recClose").onclick = closeSheet;
+          if (!acik) return;
+          $("recSubmit").onclick = function () {
+            api
+              .recover($("recKey").value, $("recPhone").value.trim(), $("recNew").value)
+              .then(function (sonuc) {
+                closeSheet();
+                toast(sonuc.name + " için parola değiştirildi. Şimdi giriş yapabilirsin.");
+                $("loginPhone").value = $("recPhone") ? "" : "";
+              })
+              .catch(function (error) {
+                hata($("recMsg"), error.message);
+              });
+          };
+        })
+        .catch(function (error) {
+          toast(error.message);
+        });
+    };
+
     $("logoutBtn").onclick = function () {
       api.logout().then(function () {
         state.user = null;
@@ -1418,6 +1456,9 @@
       '<div class="card"><div class="overline">Personel yetki başvuruları</div>' +
       '<div id="appList"><div class="empty">Yükleniyor…</div></div></div>' +
 
+      '<div class="card"><div class="overline">Kullanıcılar</div>' +
+      '<p class="muted" style="margin:6px 0 10px">Bölge değiştirme ve parola sıfırlama buradan yapılır.</p>' +
+      '<div id="kullaniciListesi"><div class="empty">Yükleniyor…</div></div></div>' +
       '<div class="card"><div class="overline">Duyuru yayınla</div>' +
       '<label>Başlık<input id="duyuruTitle" autocomplete="off" /></label>' +
       '<label>İçerik<textarea id="duyuruBody" autocomplete="off" autocorrect="off" spellcheck="false"></textarea></label>' +
@@ -1511,6 +1552,7 @@
 
     loadDistricts();
     loadApplications();
+    loadKullanicilar();
     loadDuyuruYonetim();
     loadAdYonetim();
   }
@@ -1662,6 +1704,89 @@
       .join("");
   }
 
+  function rolEtiketi(u) {
+    if (u.role === "yonetici") return '<span class="pill green">yönetici</span>';
+    if (u.role === "personel") return '<span class="pill honey">personel</span>';
+    return '<span class="pill grey">arıcı</span>';
+  }
+
+  function loadKullanicilar() {
+    api
+      .users()
+      .then(function (liste) {
+        var box = $("kullaniciListesi");
+        if (!box) return;
+        box.innerHTML = liste
+          .map(function (u) {
+            return (
+              '<div class="list-item"><div class="row"><div class="grow">' +
+              "<h4>" + esc(u.name) + "</h4>" +
+              '<div class="muted">' + esc(u.phone) +
+              (u.staffCode ? " · " + esc(u.staffCode) : "") + "</div>" +
+              '<div class="muted">' +
+              (u.district ? esc(u.province || "") + " / " + esc(u.district) : "bölge atanmadı") +
+              "</div></div>" + rolEtiketi(u) + "</div>" +
+              (u.role === "personel"
+                ? '<div class="row" style="margin-top:8px">' +
+                  '<select data-yeni-bolge="' + esc(u.id) + '" class="grow"><option value="">Bölge değiştir…</option>' +
+                  bolgeSecenekleri(u.province, u.district) + "</select>" +
+                  '<button class="btn small" data-bolge-kaydet="' + esc(u.id) + '">Kaydet</button></div>'
+                : "") +
+              '<div class="row" style="margin-top:8px">' +
+              '<button class="btn ghost small grow" data-pw="' + esc(u.id) + '">Parola sıfırla</button>' +
+              "</div></div>"
+            );
+          })
+          .join("");
+
+        Array.prototype.forEach.call(box.querySelectorAll("[data-bolge-kaydet]"), function (b) {
+          b.onclick = function () {
+            var sel = box.querySelector('[data-yeni-bolge="' + b.dataset.bolgeKaydet + '"]');
+            if (!sel || !sel.value) return toast("Önce yeni bölgeyi seç.");
+            var parca = sel.value.split("|");
+            api
+              .assignArea(b.dataset.bolgeKaydet, parca[0], parca[1])
+              .then(function () {
+                toast("Bölge güncellendi: " + parca[1]);
+                loadKullanicilar();
+              })
+              .catch(bildirHata);
+          };
+        });
+
+        Array.prototype.forEach.call(box.querySelectorAll("[data-pw]"), function (b) {
+          b.onclick = function () {
+            var kisi = liste.find(function (x) { return x.id === b.dataset.pw; });
+            openSheet(
+              "<h3>Parola sıfırla</h3>" +
+              '<p class="muted" style="margin:0 0 14px">' + esc(kisi ? kisi.name : "") +
+              " için yeni parola belirle ve kendisine ilet.</p>" +
+              '<div class="card"><div id="rsMsg"></div>' +
+              '<label>Yeni parola<input id="rsNew" type="password" autocomplete="new-password" placeholder="En az 6 karakter" /></label>' +
+              '<div class="row"><button class="btn grow" id="rsSave">Sıfırla</button>' +
+              '<button class="btn ghost" id="rsClose">Kapat</button></div></div>',
+            );
+            $("rsClose").onclick = closeSheet;
+            $("rsSave").onclick = function () {
+              api
+                .adminResetPassword(b.dataset.pw, $("rsNew").value)
+                .then(function () {
+                  closeSheet();
+                  toast("Parola sıfırlandı. Kullanıcıya yeni parolayı ilet.");
+                })
+                .catch(function (error) {
+                  hata($("rsMsg"), error.message);
+                });
+            };
+          };
+        });
+      })
+      .catch(function (error) {
+        var box = $("kullaniciListesi");
+        if (box) box.innerHTML = '<div class="error">' + esc(error.message) + "</div>";
+      });
+  }
+
   function loadApplications() {
     api
       .applications("beklemede")
@@ -1752,7 +1877,27 @@
           '<label>İlçe<select id="apDistrict"><option value="">Önce il seç</option></select></label>' +
           '<button class="btn full" id="applyBtn">Başvuruyu gönder</button></div>'
         : "") +
+      '<div class="card"><div class="overline">Parola değiştir</div>' +
+      '<div id="pwMsg"></div>' +
+      '<label>Mevcut parola<input id="pwCurrent" type="password" autocomplete="current-password" /></label>' +
+      '<label>Yeni parola<input id="pwNext" type="password" autocomplete="new-password" placeholder="En az 6 karakter" /></label>' +
+      '<button class="btn full" id="pwSave">Parolayı değiştir</button>' +
+      '<p class="muted" style="margin:9px 0 0">Parola değişince tüm cihazlardaki oturumlar kapanır.</p></div>' +
       '<div class="card"><button class="btn ghost full" id="hesapCikis">Çıkış yap</button></div>';
+
+    $("pwSave").onclick = function () {
+      api
+        .changePassword($("pwCurrent").value, $("pwNext").value)
+        .then(function () {
+          toast("Parola değiştirildi. Yeniden giriş yapmalısın.");
+          setTimeout(function () {
+            $("logoutBtn").click();
+          }, 1200);
+        })
+        .catch(function (error) {
+          hata($("pwMsg"), error.message);
+        });
+    };
 
     $("hesapCikis").onclick = function () {
       $("logoutBtn").click();

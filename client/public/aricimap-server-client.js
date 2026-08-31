@@ -208,6 +208,8 @@
       return data.user;
     },
     users: () => request("GET", "/users").then((d) => d.users),
+    assignArea: (id, province, district) =>
+      request("POST", "/users/" + encodeURIComponent(id) + "/area", { province, district }),
     decide: (id, approve, asStaff) =>
       request("POST", "/users/" + encodeURIComponent(id) + "/decide", { approve, asStaff }).then((d) => d.user),
     saveLocation: (payload) => request("PUT", "/location", payload),
@@ -275,6 +277,14 @@
     ads: () => request("GET", "/ads").then((d) => d.ads),
     saveAd: (payload) => request("POST", "/ads", payload).then((d) => d.ad),
     deleteAd: (id) => request("DELETE", "/ads/" + encodeURIComponent(id)),
+
+    // --- Parola ---
+    recoveryStatus: () => request("GET", "/recovery-status").then((d) => d.enabled),
+    changePassword: (current, next) => request("POST", "/me/password", { current, next }),
+    adminResetPassword: (id, next) =>
+      request("POST", "/users/" + encodeURIComponent(id) + "/password", { next }),
+    recover: (recoveryKey, phone, next) =>
+      request("POST", "/recover", { recoveryKey, phone, next }),
 
     // --- Konaklama talepleri ---
     stayRequests: (status) =>

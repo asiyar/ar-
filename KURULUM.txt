@@ -1,53 +1,56 @@
-ARICIMAP — DÜZELTME PAKETİ
-===========================
-
-Bu zip deponun klasör yapısıyla aynıdır. Kök dizine açınca her dosya
-kendiliğinden doğru yere gider.
+ARICIMAP — PAROLA KURTARMA PAKETİ
+==================================
 
 Codespaces terminalinde:
 
 cd /workspaces/ar-
 unzip -o aricimap-yerlesim.zip
 rm -f aricimap-yerlesim.zip KURULUM.txt
-ls server/ && ls client/public/
 git add -A
-git commit -m "Ilce verisi gomuldu, harita ve bildirim duzeltmeleri"
+git commit -m "Parola degistirme, kurtarma anahtari, kullanici yonetimi"
 git push
 
-Deploy bitince APK'yı YENİDEN üret: Actions -> Android Test APK
 
-BU SÜRÜMDE NE DEĞİŞTİ
----------------------
-1. İlçe listesi artık uygulamanın içinde (81 il, 973 ilçe).
-   Önceki sürümde OpenStreetMap'ten çekiliyordu ve "fetch failed" hatası
-   veriyordu; bu yüzden yönetici personele bölge atayamıyordu.
-   Artık ağ erişimi gerekmiyor, "İlçe sınırları yükle" bölümü kaldırıldı.
+ÖNEMLİ: KURTARMA ANAHTARINI ŞİMDİ TANIMLA
+------------------------------------------
+Render -> Environment -> Add Environment Variable
 
-2. Harita: uydu görüntüsü eklendi ve varsayılan katman oldu.
-   Arıcı dağda kendi arazisini uydu görüntüsünden tanıyabilir.
-   Sağ üstteki katman düğmesiyle yol haritasına geçilebilir.
-   GPS alındığında 17 kat yakınlaşır ve doğruluk çemberi çizilir.
+  Key   : ARICIMAP_RECOVERY_KEY
+  Value : (uzun ve tahmin edilemez bir metin, örn. 30+ karakter)
 
-3. Konum kaydında il ve ilçe seçimi ZORUNLU.
-   Bildirimin hangi ilçe sorumlusuna gideceğini bu belirler.
+Bu anahtar YALNIZCA sende olmalı. Yönetici parolasını unutursa tek
+kurtarma yolu budur. Anahtar tanımlı değilse "Parolamı unuttum" ekranı
+kapalı görünür ve kimse parolasını sıfırlayamaz.
 
-4. Reklam panosu haritanın hemen altına alındı.
-   Görsel ve video bağlantısı eklenebiliyor (video varsa o gösterilir).
+Anahtarı bir yere yaz ve sakla. Kaybedersen Neon SQL konsolundan elle
+müdahale etmek dışında yol kalmaz.
 
-5. Mesajlar artık tıklanabilir; tam içerik açılır, konum varsa
-   "Haritada göster" düğmesi çıkar, açılınca okundu sayılır.
 
-6. Duyurular mesaj kutusunda da listeleniyor.
-
-7. Metin alanlarında tarayıcı geçmişi önerileri kapatıldı.
-   Tespit notunda sabit öneri düğmeleri var.
-
-8. Personel başvurusunda ve onayında il + ilçe zorunlu; sunucu ilçenin
-   gerçekten o ile ait olduğunu doğruluyor.
-
-BİLİNEN EKSİKLER
+ÜÇ KURTARMA YOLU
 ----------------
-- Anlık bildirim (push) yok; bildirimler uygulama içi kutuda birikir.
-- Parola sıfırlama yok.
-- Girişte deneme sınırı yok.
-- site/privacy.html hâlâ "veriler cihazdan çıkmaz" diyor; artık doğru değil.
+1) Kullanıcı kendi parolasını değiştirir
+   Hesap sekmesi -> Parola değiştir (mevcut parolayı bilmesi gerekir)
+
+2) Yönetici, bir kullanıcının parolasını sıfırlar
+   Yönetim -> Kullanıcılar -> Parola sıfırla
+   Yeni parolayı kullanıcıya kendin iletirsin.
+
+3) Kurtarma anahtarıyla sıfırlama (yönetici kendi parolasını unutursa)
+   Giriş ekranı -> "Parolamı unuttum"
+   Telefon + kurtarma anahtarı + yeni parola
+
+
+SON ÇARE: YÖNETİCİ HESABI HİÇ KALMADIYSA
+-----------------------------------------
+Bir hesabı yöneticiye yükseltmek için (terminalden):
+
+curl -X POST https://ar-3q6i.onrender.com/api/aricimap/recover/promote \
+  -H 'Content-Type: application/json' \
+  -d '{"recoveryKey":"ANAHTARIN","phone":"05XXXXXXXXX"}'
+
+
+BU SÜRÜMDE AYRICA
+-----------------
+- Yönetim -> Kullanıcılar: tüm kayıtlı kişiler, rolleri ve bölgeleri
+- Personelin bölgesi sonradan değiştirilebiliyor
+- Parola değişince o kişinin tüm cihazlardaki oturumları kapanıyor
