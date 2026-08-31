@@ -39,6 +39,7 @@ import {
   deleteNote,
 } from "./fieldwork";
 import { listDistricts, listProvinces } from "./districts";
+import { registerToken, removeToken, pushEnabled } from "./push";
 import {
   changeOwnPassword,
   adminResetPassword,
@@ -704,5 +705,27 @@ export function registerAccountRoutes(app: Express) {
   /** Yönetici sayısı sıfırsa sistem yönetilemez; yönetici bunu görebilmeli. */
   app.get("/api/aricimap/admin-count", requireUser, requireAdmin, async (_req, res) => {
     res.json({ count: await adminCount() });
+  });
+
+  // --- Anlık bildirim (push) ------------------------------------------------
+
+  app.get("/api/aricimap/push-status", (_req, res) => {
+    res.json({ enabled: pushEnabled() });
+  });
+
+  /** Cihaz jetonu kaydeder; kilit ekranı bildirimi buna gönderilir. */
+  app.post("/api/aricimap/push/register", requireUser, async (req: AuthedRequest, res) => {
+    const token = asText(req.body?.token);
+    if (token.length < 10) {
+      res.status(400).json({ error: "Geçersiz cihaz jetonu." });
+      return;
+    }
+    await registerToken(req.user!.id, token, asText(req.body?.platform) || "android");
+    res.json({ ok: true });
+  });
+
+  app.post("/api/aricimap/push/unregister", requireUser, async (req, res) => {
+    await removeToken(asText(req.body?.token));
+    res.json({ ok: true });
   });
 }

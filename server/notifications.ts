@@ -10,6 +10,7 @@
  */
 import crypto from "node:crypto";
 import { pool, initSchema, type StoredUser } from "./accountStore";
+import { sendPush } from "./push";
 
 
 export type NotificationKind = "konum" | "konaklama" | "denetim" | "sistem";
@@ -162,6 +163,18 @@ export async function notifyArea(input: {
       ],
     );
   }
+
+  // Kilit ekranı bildirimi. Gönderilemezse kayıt yine de durur; push
+  // yapılandırılmamış olabilir ve bu asıl işlemi düşürmemeli.
+  try {
+    await sendPush(
+      recipients.map((p) => p.id),
+      { title: input.title, body: input.body || "", page: "kutu", lat: input.lat, lng: input.lng },
+    );
+  } catch (error) {
+    console.warn("Anlık bildirim gönderilemedi:", error);
+  }
+
   return { district: area ? area.name : null, delivered: recipients.length };
 }
 
@@ -177,6 +190,11 @@ export async function notifyUser(
     `INSERT INTO notifications (id, user_id, kind, title, body) VALUES ($1,$2,$3,$4,$5)`,
     [newId(), userId, kind, title, body],
   );
+  try {
+    await sendPush([userId], { title, body, page: "kutu" });
+  } catch (error) {
+    console.warn("Anlık bildirim gönderilemedi:", error);
+  }
 }
 
 export async function listNotifications(userId: string, limit = 50): Promise<StoredNotification[]> {

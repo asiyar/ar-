@@ -156,6 +156,7 @@
         .then(function (user) {
           state.user = user;
           showApp();
+          pushKaydet();
         })
         .catch(function (error) {
           hata($("authMsg"), error && error.message ? error.message : "Giriş yapılamadı.");
@@ -191,6 +192,7 @@
         .then(function (user) {
           state.user = user;
           showApp();
+          pushKaydet();
           toast("Hoş geldin " + user.name);
         })
         .catch(function (error) {
@@ -1956,12 +1958,74 @@
 
   // --- Açılış --------------------------------------------------------------
 
+  /**
+   * Kilit ekranı bildirimi için cihazı kaydeder.
+   *
+   * Capacitor eklentisi yalnızca APK/IPA içinde bulunur; tarayıcıda çalışırken
+   * sessizce atlanır. Uygulama iframe içinde çalıştığı sürece de eklentiye
+   * erişilemiyordu, bu yüzden iframe kaldırıldı.
+   */
+  function pushKaydet() {
+    var cap = window.Capacitor;
+    var eklenti = cap && cap.Plugins && cap.Plugins.PushNotifications;
+    if (!eklenti || !cap.isNativePlatform || !cap.isNativePlatform()) return;
+
+    eklenti.addListener("registration", function (bilgi) {
+      var jeton = bilgi && bilgi.value;
+      if (!jeton) return;
+      api
+        .registerPush(jeton, cap.getPlatform ? cap.getPlatform() : "android")
+        .then(function () {
+          try {
+            localStorage.setItem("aricimap-push-token", jeton);
+          } catch (error) {
+            // Depolama kapalıysa jeton yalnızca bu oturumda bilinir.
+          }
+        })
+        .catch(function (error) {
+          console.warn("Cihaz jetonu kaydedilemedi", error);
+        });
+    });
+
+    eklenti.addListener("registrationError", function (error) {
+      console.warn("Bildirim izni alınamadı", error);
+    });
+
+    // Bildirime dokununca ilgili sayfa açılır.
+    eklenti.addListener("pushNotificationActionPerformed", function (olay) {
+      var veri = (olay && olay.notification && olay.notification.data) || {};
+      goto(veri.page || "kutu");
+      if (veri.lat && veri.lng && state.map) {
+        setTimeout(function () {
+          state.map.setView([Number(veri.lat), Number(veri.lng)], 15);
+        }, 300);
+      }
+      refreshNotifications();
+    });
+
+    // Uygulama açıkken gelen bildirim sayacı tazelesin.
+    eklenti.addListener("pushNotificationReceived", function () {
+      refreshNotifications();
+    });
+
+    eklenti
+      .requestPermissions()
+      .then(function (izin) {
+        if (izin && izin.receive === "granted") return eklenti.register();
+        console.warn("Bildirim izni verilmedi:", izin && izin.receive);
+      })
+      .catch(function (error) {
+        console.warn("Bildirim izni istenemedi", error);
+      });
+  }
+
   function start() {
     wireAuth();
     if (api.currentUser) {
       state.user = api.currentUser;
       showApp();
       loadMyLocation();
+      pushKaydet();
     } else {
       showAuth();
     }

@@ -278,6 +278,11 @@
     saveAd: (payload) => request("POST", "/ads", payload).then((d) => d.ad),
     deleteAd: (id) => request("DELETE", "/ads/" + encodeURIComponent(id)),
 
+    // --- Anlık bildirim ---
+    pushStatus: () => request("GET", "/push-status").then((d) => d.enabled),
+    registerPush: (token, platform) => request("POST", "/push/register", { token, platform }),
+    unregisterPush: (token) => request("POST", "/push/unregister", { token }),
+
     // --- Parola ---
     recoveryStatus: () => request("GET", "/recovery-status").then((d) => d.enabled),
     changePassword: (current, next) => request("POST", "/me/password", { current, next }),

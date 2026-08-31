@@ -1,56 +1,86 @@
-ARICIMAP — PAROLA KURTARMA PAKETİ
-==================================
+ARICIMAP — PUSH BİLDİRİM PAKETİ
+================================
 
 Codespaces terminalinde:
 
 cd /workspaces/ar-
 unzip -o aricimap-yerlesim.zip
 rm -f aricimap-yerlesim.zip KURULUM.txt
+
+# Kökte kalan ölü kopyaları temizle (varsa)
+rm -f accountStore.ts accountRoutes.ts districts.ts notifications.ts \
+      staffApplications.ts fieldwork.ts content.ts stayRequests.ts index.ts \
+      trAdres.ts recovery.ts push.ts \
+      accountStore.test.ts districts.test.ts fieldwork.test.ts content.test.ts \
+      aricimap-app.html aricimap-app.js aricimap-server-client.js Home.tsx
+
 git add -A
-git commit -m "Parola degistirme, kurtarma anahtari, kullanici yonetimi"
+git commit -m "Push bildirim altyapisi, iframe kaldirildi, onbellek kirma"
 git push
 
 
-ÖNEMLİ: KURTARMA ANAHTARINI ŞİMDİ TANIMLA
-------------------------------------------
-Render -> Environment -> Add Environment Variable
+NEDEN "SON YAPTIKLARIN OLMAMIŞ" GÖRÜNÜYORDU
+--------------------------------------------
+Kod depoda ve sunucuda vardı. İki sebep:
 
-  Key   : ARICIMAP_RECOVERY_KEY
-  Value : (uzun ve tahmin edilemez bir metin, örn. 30+ karakter)
+1. APK eski. APK web dosyalarını derleme anında içine gömer; sunucudaki
+   güncelleme APK'ya yansımaz. Her değişiklikten sonra APK yeniden
+   üretilmeli: Actions -> Android Test APK -> Run workflow
 
-Bu anahtar YALNIZCA sende olmalı. Yönetici parolasını unutursa tek
-kurtarma yolu budur. Anahtar tanımlı değilse "Parolamı unuttum" ekranı
-kapalı görünür ve kimse parolasını sıfırlayamaz.
-
-Anahtarı bir yere yaz ve sakla. Kaybedersen Neon SQL konsolundan elle
-müdahale etmek dışında yol kalmaz.
+2. Tarayıcı önbelleği. Artık script adreslerine sürüm damgası eklendi
+   (aricimap-app.js?v=...), yeni sürüm her zaman iner.
 
 
-ÜÇ KURTARMA YOLU
-----------------
-1) Kullanıcı kendi parolasını değiştirir
-   Hesap sekmesi -> Parola değiştir (mevcut parolayı bilmesi gerekir)
+BU SÜRÜMDE NE DEĞİŞTİ
+---------------------
+1. iframe kaldırıldı. Uygulama artık doğrudan ana sayfa.
+   Bu ŞARTTI: Capacitor eklentileri iframe içinden erişilemiyor,
+   dolayısıyla push bildirimi hiç çalışamazdı.
+   Yan fayda: 410 KB React kabuğu artık üretilmiyor.
 
-2) Yönetici, bir kullanıcının parolasını sıfırlar
-   Yönetim -> Kullanıcılar -> Parola sıfırla
-   Yeni parolayı kullanıcıya kendin iletirsin.
+2. Push altyapısı hazır: cihaz jetonu kaydı, FCM gönderimi,
+   bildirime dokununca ilgili sayfanın açılması.
 
-3) Kurtarma anahtarıyla sıfırlama (yönetici kendi parolasını unutursa)
-   Giriş ekranı -> "Parolamı unuttum"
-   Telefon + kurtarma anahtarı + yeni parola
-
-
-SON ÇARE: YÖNETİCİ HESABI HİÇ KALMADIYSA
------------------------------------------
-Bir hesabı yöneticiye yükseltmek için (terminalden):
-
-curl -X POST https://ar-3q6i.onrender.com/api/aricimap/recover/promote \
-  -H 'Content-Type: application/json' \
-  -d '{"recoveryKey":"ANAHTARIN","phone":"05XXXXXXXXX"}'
+3. Önbellek kırma: script adreslerinde sürüm damgası.
 
 
-BU SÜRÜMDE AYRICA
------------------
-- Yönetim -> Kullanıcılar: tüm kayıtlı kişiler, rolleri ve bölgeleri
-- Personelin bölgesi sonradan değiştirilebiliyor
-- Parola değişince o kişinin tüm cihazlardaki oturumları kapanıyor
+PUSH'U AÇMAK İÇİN YAPMAN GEREKENLER
+------------------------------------
+Bu kısmı ben yapamam; Firebase hesabı senin adına açılmalı.
+
+ADIM 1 — Firebase projesi
+  console.firebase.google.com -> Add project -> ad: aricimap
+  Google Analytics'i kapatabilirsin.
+
+ADIM 2 — Android uygulaması ekle
+  Project settings -> Your apps -> Android
+  Package name: com.arcadianstore.aricimap
+  google-services.json dosyasını indir.
+
+ADIM 3 — Dosyayı depoya koy
+  google-services.json -> android/app/google-services.json
+  DİKKAT: .gitignore bu dosyayı engelliyor olabilir. Engelliyorsa
+  .gitignore icindeki "google-services.json" satirini sil.
+
+ADIM 4 — Servis hesabı anahtarı
+  Project settings -> Service accounts -> Generate new private key
+  İnen JSON dosyasının TAMAMINI kopyala.
+
+ADIM 5 — Render'a ekle
+  Environment -> Add Environment Variable
+  Key   : FCM_SERVICE_ACCOUNT
+  Value : (adım 4'teki JSON'un tamamı, tek satır olarak)
+
+ADIM 6 — APK'yı yeniden üret
+  Actions -> Android Test APK -> Run workflow
+
+KONTROL
+  https://ar-3q6i.onrender.com/api/aricimap/push-status
+  {"enabled":true} görüyorsan sunucu tarafı hazır.
+  APK'yı kurup giriş yapınca telefon bildirim izni ister.
+
+
+PUSH YAPILANDIRILMAZSA
+----------------------
+Uygulama normal çalışır, yalnızca kilit ekranı bildirimi çıkmaz.
+Bildirimler uygulama içi mesaj kutusunda birikmeye devam eder.

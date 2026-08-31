@@ -11,6 +11,7 @@ import { initNotificationSchema } from "./notifications";
 import { initDistrictSchema } from "./districts";
 import { initContentSchema } from "./content";
 import { initStaySchema } from "./stayRequests";
+import { initPushSchema } from "./push";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -29,6 +30,7 @@ async function startServer() {
     .then(initNotificationSchema)
     .then(initContentSchema)
     .then(initStaySchema)
+    .then(initPushSchema)
     .then(purgeExpiredSessions)
     .catch((error) => console.error("Veritabanı hazırlanamadı:", error));
   app.get("/api/aricimap/state", async (_req, res) => {
