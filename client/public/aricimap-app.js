@@ -31,6 +31,8 @@
     myLocation: null,
     picking: false,
     picked: null,
+    gpsAccuracy: null,
+    accuracyCircle: null,
     bolge: {},
     ilceler: [],
   };
@@ -472,10 +474,28 @@
   function ensureMap() {
     if (state.map || !window.L) return state.map;
     state.map = L.map("map", { zoomControl: true }).setView(TURKIYE_MERKEZ, TURKIYE_ZOOM);
-    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+
+    // Yol haritası arazide işe yaramıyor: dağda yol, bina veya sokak yok.
+    // Uydu görüntüsü arıcının kendi arazisini tanımasını sağlar.
+    var yol = L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
       maxZoom: 19,
       attribution: "© OpenStreetMap katkıda bulunanları",
-    }).addTo(state.map);
+    });
+    var uydu = L.tileLayer(
+      "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
+      { maxZoom: 19, maxNativeZoom: 18, attribution: "Görüntü © Esri" },
+    );
+    var araziAdlari = L.tileLayer(
+      "https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}",
+      { maxZoom: 19, maxNativeZoom: 18 },
+    );
+    var uyduKarma = L.layerGroup([uydu, araziAdlari]);
+
+    // Arazi çalışmasında uydu daha kullanışlı olduğu için varsayılan odur.
+    uyduKarma.addTo(state.map);
+    L.control
+      .layers({ "Uydu görüntüsü": uyduKarma, "Yol haritası": yol }, null, { position: "topright" })
+      .addTo(state.map);
 
     state.map.on("click", function (event) {
       if (!state.picking) return;
@@ -539,10 +559,10 @@
         '<div class="card"><div id="map"></div>' +
         '<div class="legend"><span><i style="background:#b95748"></i>Tespit edilmedi</span>' +
         '<span><i style="background:#31794d"></i>Tespit edildi</span></div></div>' +
+        '<div id="sponsorBox"></div>' +
         '<div id="duyuruBox"></div>' +
         '<div id="haritaPanel"></div>' +
-        '<div id="konaklamaBox"></div>' +
-        '<div id="sponsorBox"></div>';
+        '<div id="konaklamaBox"></div>';
       page.dataset.built = "1";
     }
     ensureMap();
@@ -615,13 +635,20 @@
             ? "tel:" + ad.phone
             : ad.website || "";
         box.innerHTML =
-          '<div class="card" style="border-color:#e8d9ae;background:#fffdf5">' +
-          '<div class="overline" style="color:#a07a17">Sponsor</div>' +
-          '<h4 style="margin:6px 0 3px;font-size:14px">' + esc(ad.company) + "</h4>" +
+          '<div class="card" style="border-color:#e8d9ae;background:#fffdf5;overflow:hidden">' +
+          '<div class="overline" style="color:#a07a17">Reklam panosu</div>' +
+          (ad.videoUrl
+            ? '<video src="' + esc(ad.videoUrl) + '" controls playsinline preload="metadata" ' +
+              'style="width:100%;margin:10px 0 0;border-radius:9px;background:#000"></video>'
+            : ad.imageUrl
+              ? '<img src="' + esc(ad.imageUrl) + '" alt="" loading="lazy" ' +
+                'style="width:100%;margin:10px 0 0;border-radius:9px;display:block" />'
+              : "") +
+          '<h4 style="margin:10px 0 3px;font-size:14px">' + esc(ad.company) + "</h4>" +
           (ad.title ? '<div style="font-size:13px">' + esc(ad.title) + "</div>" : "") +
           (ad.description ? '<div class="muted" style="margin-top:4px">' + esc(ad.description) + "</div>" : "") +
           (link
-            ? '<button class="btn honey small" id="sponsorBtn" style="margin-top:10px">' +
+            ? '<button class="btn honey small full" id="sponsorBtn" style="margin-top:11px">' +
               esc(ad.cta || "İletişime geç") + "</button>"
             : "") +
           "</div>";
@@ -735,7 +762,8 @@
       '<label>Kovan sayısı<input id="stayHives" type="number" inputmode="numeric" min="0" /></label>' +
       '<label>Başlangıç<input id="stayFrom" type="date" /></label>' +
       '<label>Bitiş<input id="stayTo" type="date" /></label>' +
-      '<label>Not<textarea id="stayNote" placeholder="Örn: 120 kovanla iki hafta kalmak istiyorum."></textarea></label>' +
+      '<label>Not<textarea id="stayNote" autocomplete="off" autocorrect="off" spellcheck="false" ' +
+      'placeholder="Örn: 120 kovanla iki hafta kalmak istiyorum."></textarea></label>' +
       '<div class="row"><button class="btn grow" id="staySave">Gönder</button>' +
       '<button class="btn ghost" id="stayClose">Kapat</button></div></div>',
     );
@@ -784,24 +812,78 @@
         ? "Seçili: " + secili.lat.toFixed(5) + ", " + secili.lng.toFixed(5)
         : "Henüz konum seçilmedi.") +
       "</div>" +
-      '<label>Kovan sayısı<input id="hiveInput" type="number" inputmode="numeric" min="0" value="' +
+      '<label>İl<select id="locIl"><option value="">İl seç…</option>' +
+      TR_ILLER.map(function (x) {
+        return '<option value="' + esc(x) + '"' + (loc && loc.province === x ? " selected" : "") + ">" + esc(x) + "</option>";
+      }).join("") +
+      "</select></label>" +
+      '<label>İlçe<select id="locIlce"><option value="">Önce il seç</option></select></label>' +
+      '<p class="muted" style="margin:-4px 0 12px">Bu bilgi, konumunun hangi ilçe sorumlusuna bildirileceğini belirler.</p>' +
+      '<label>Kovan sayısı<input id="hiveInput" type="number" inputmode="numeric" min="0" autocomplete="off" value="' +
       (loc && loc.hives !== null && loc.hives !== undefined ? esc(loc.hives) : "") +
       '" /></label>' +
-      '<label>Yer tarifi<input id="placeInput" value="' + esc(loc ? loc.place : "") + '" /></label>' +
-      '<label>Not<textarea id="noteInput">' + esc(loc ? loc.note : "") + "</textarea></label>" +
+      '<label>Yer tarifi<input id="placeInput" autocomplete="off" autocorrect="off" spellcheck="false" value="' + esc(loc ? loc.place : "") + '" /></label>' +
+      '<label>Not<textarea id="noteInput" autocomplete="off" autocorrect="off" spellcheck="false">' +
+      esc(loc ? loc.note : "") + "</textarea></label>" +
       '<button class="btn full" id="saveLocBtn">Konumu kaydet</button>' +
       (loc
         ? '<p class="muted" style="margin:10px 0 0">Son güncelleme: ' + tarih(loc.updatedAt) + "</p>"
         : "") +
       "</div>";
 
+    // İlçe listesi seçilen ile göre dolar.
+    function doldurIlce(secili) {
+      var il = $("locIl").value;
+      var sel = $("locIlce");
+      if (!il) {
+        sel.innerHTML = '<option value="">Önce il seç</option>';
+        return Promise.resolve();
+      }
+      return api
+        .districts(il)
+        .then(function (list) {
+          sel.innerHTML =
+            '<option value="">İlçe seç…</option>' +
+            list
+              .map(function (d) {
+                return (
+                  '<option value="' + esc(d.name) + '"' +
+                  (secili === d.name ? " selected" : "") + ">" + esc(d.name) + "</option>"
+                );
+              })
+              .join("");
+        })
+        .catch(function () {
+          sel.innerHTML = '<option value="">İlçeler alınamadı</option>';
+        });
+    }
+    $("locIl").onchange = function () {
+      doldurIlce(null);
+    };
+    if (loc && loc.province) doldurIlce(loc.district);
+
     $("gpsBtn").onclick = function () {
       if (!navigator.geolocation) return toast("Cihaz konum servisini desteklemiyor.");
       toast("Konum alınıyor…");
+      if (state.accuracyCircle && state.map) {
+        state.map.removeLayer(state.accuracyCircle);
+        state.accuracyCircle = null;
+      }
       navigator.geolocation.getCurrentPosition(
         function (pos) {
           state.picked = { lat: pos.coords.latitude, lng: pos.coords.longitude };
-          if (state.map) state.map.setView([state.picked.lat, state.picked.lng], 15);
+          state.gpsAccuracy = pos.coords.accuracy || null;
+          if (state.map) {
+            // Arazide kendi noktasını görebilmesi için yakın zoom.
+            state.map.setView([state.picked.lat, state.picked.lng], 17);
+            if (state.accuracyCircle) state.map.removeLayer(state.accuracyCircle);
+            if (state.gpsAccuracy) {
+              state.accuracyCircle = L.circle([state.picked.lat, state.picked.lng], {
+                radius: state.gpsAccuracy,
+                color: "#2d7897", weight: 1, fillColor: "#2d7897", fillOpacity: 0.12,
+              }).addTo(state.map);
+            }
+          }
           renderAriciHarita();
           toast("GPS konumu alındı.");
         },
@@ -821,6 +903,9 @@
     $("saveLocBtn").onclick = function () {
       var target = state.picked || (loc ? { lat: loc.lat, lng: loc.lng } : null);
       if (!target) return toast("Önce GPS ile veya haritadan konum seç.");
+      if (!$("locIl").value || !$("locIlce").value) {
+        return toast("İl ve ilçe seçmelisin; bildirim buna göre yönlendiriliyor.");
+      }
       var raw = $("hiveInput").value.trim();
       var hives = raw === "" ? null : Number(raw);
       if (hives !== null && (!Number.isInteger(hives) || hives < 0)) {
@@ -834,6 +919,8 @@
           place: $("placeInput").value.trim(),
           note: $("noteInput").value.trim(),
           source: "GPS",
+          province: $("locIl").value,
+          district: $("locIlce").value,
         })
         .then(function (result) {
           state.picked = null;
@@ -917,6 +1004,42 @@
       .catch(function () {});
   }
 
+  function renderDuyuruKutusu() {
+    var box = $("kutuDuyuru");
+    if (!box) return;
+    api
+      .announcements()
+      .then(function (liste) {
+        var yayinda = liste.filter(function (a) {
+          return a.active;
+        });
+        if (!yayinda.length) {
+          box.innerHTML = "";
+          return;
+        }
+        box.innerHTML =
+          '<div class="card"><div class="overline">Duyurular</div>' +
+          yayinda
+            .slice(0, 10)
+            .map(function (a) {
+              var renk = a.level === "acil" ? "red" : a.level === "uyari" ? "honey" : "grey";
+              return (
+                '<div class="list-item"><div class="row"><div class="grow">' +
+                "<h4>" + esc(a.title) + "</h4>" +
+                (a.body ? '<div class="muted" style="white-space:pre-wrap">' + esc(a.body) + "</div>" : "") +
+                '<div class="muted" style="margin-top:3px">' +
+                esc(a.district || a.province || "Türkiye geneli") + " · " + tarih(a.createdAt) +
+                "</div></div><span class=\"pill " + renk + '">' + esc(a.level) + "</span></div></div>"
+              );
+            })
+            .join("") +
+          "</div>";
+      })
+      .catch(function () {
+        box.innerHTML = "";
+      });
+  }
+
   function renderKutu(skipRefresh) {
     // Kutu açılırken sunucudan tazelenir; yoksa kullanıcı eski listeyi görür
     // ve yeni bildirimi kaçırdığını sanır.
@@ -942,9 +1065,10 @@
       "</div>" +
       (list.length
         ? list
-            .map(function (n) {
+            .map(function (n, i) {
               return (
-                '<div class="list-item">' +
+                '<button class="list-item" data-msg="' + i + '" style="display:block;width:100%;' +
+                'border:0;background:transparent;text-align:left;font:inherit;cursor:pointer">' +
                 '<div class="row"><div class="grow"><h4>' +
                 esc(n.title) +
                 "</h4>" +
@@ -954,12 +1078,49 @@
                 tarih(n.createdAt) +
                 "</div></div>" +
                 (n.readAt ? "" : '<span class="pill honey">yeni</span>') +
-                "</div></div>"
+                "</div></button>"
               );
             })
             .join("")
         : '<div class="empty">Henüz bildirim yok.</div>') +
-      "</div>";
+      '</div><div id="kutuDuyuru"></div>';
+
+    // Mesaja dokununca tam içeriği açılır ve okundu sayılır.
+    Array.prototype.forEach.call(page.querySelectorAll("[data-msg]"), function (b) {
+      b.onclick = function () {
+        var n = list[Number(b.dataset.msg)];
+        if (!n) return;
+        openSheet(
+          "<h3>" + esc(n.title) + "</h3>" +
+          '<p class="muted" style="margin:0 0 14px">' +
+          (n.district ? esc(n.district) + " · " : "") + tarih(n.createdAt) + "</p>" +
+          '<div class="card">' +
+          (n.body
+            ? '<div style="white-space:pre-wrap;line-height:1.6">' + esc(n.body) + "</div>"
+            : '<div class="muted">Bu bildirimde ek açıklama yok.</div>') +
+          (n.lat && n.lng
+            ? '<button class="btn full" id="msgHarita" style="margin-top:12px">Haritada göster</button>'
+            : "") +
+          '<button class="btn ghost full" id="msgKapat" style="margin-top:8px">Kapat</button>' +
+          "</div>",
+        );
+        $("msgKapat").onclick = closeSheet;
+        if ($("msgHarita")) {
+          $("msgHarita").onclick = function () {
+            closeSheet();
+            goto("harita");
+            setTimeout(function () {
+              if (state.map) state.map.setView([n.lat, n.lng], 15);
+            }, 200);
+          };
+        }
+        if (!n.readAt) {
+          api.markRead([n.id]).then(refreshNotifications).catch(function () {});
+        }
+      };
+    });
+
+    renderDuyuruKutusu();
 
     if ($("readAllBtn")) {
       $("readAllBtn").onclick = function () {
@@ -1096,12 +1257,41 @@
       '<label>Sayılan kovan<input id="visitHives" type="number" inputmode="numeric" min="0" value="' +
       (row.lastVisit && row.lastVisit.hiveCount !== null ? esc(row.lastVisit.hiveCount) : "") +
       '" /></label>' +
-      '<label>Not<textarea id="visitNote" placeholder="Örn: 520 kovan, 12.08.2026 tarihinde saydım"></textarea></label>' +
+      '<label>Not<textarea id="visitNote" autocomplete="off" autocorrect="off" spellcheck="false" ' +
+      'placeholder="Örn: 520 kovan, sayım yapıldı"></textarea></label>' +
+      '<div class="row wrap" style="margin:-4px 0 12px" id="visitOneri"></div>' +
       '<div class="row"><button class="btn grow" id="visitSave">Kaydet</button>' +
       '<button class="btn ghost" id="visitClose">Kapat</button></div>' +
       "</div>" +
       '<div class="card"><div class="overline">Geçmiş kayıtlar</div><div id="visitHistory"><div class="empty">Yükleniyor…</div></div></div>',
     );
+
+    // Sabit öneriler. Tarayıcının kendi geçmişi başka kullanıcıların yazdıklarını
+    // öneri olarak gösterdiği için metin alanlarında otomatik tamamlama kapalı.
+    var oneriler = [
+      "Sayım yapıldı, kovan sayısı doğru",
+      "Kovan sayısı beyandan farklı",
+      "Arılık yerinde bulunamadı",
+      "Arıcı taşınmış, yeni yer tespit edildi",
+      "Kovanlar sağlıklı görünüyor",
+      "Hastalık şüphesi, takip gerekiyor",
+    ];
+    var oneriKutusu = $("visitOneri");
+    if (oneriKutusu) {
+      oneriKutusu.innerHTML = oneriler
+        .map(function (x, i) {
+          return '<button type="button" class="btn ghost small" data-oneri="' + i + '">' + esc(x) + "</button>";
+        })
+        .join("");
+      Array.prototype.forEach.call(oneriKutusu.querySelectorAll("[data-oneri]"), function (b) {
+        b.onclick = function () {
+          var alan = $("visitNote");
+          var metin = oneriler[Number(b.dataset.oneri)];
+          alan.value = alan.value.trim() ? alan.value.trim() + ". " + metin : metin;
+          alan.focus();
+        };
+      });
+    }
 
     $("visitClose").onclick = closeSheet;
     $("visitSave").onclick = function () {
@@ -1155,8 +1345,9 @@
     page.innerHTML =
       '<div class="card"><div class="overline">Not defteri</div>' +
       '<p class="muted" style="margin:6px 0 12px">Bu notlar yalnızca sana görünür. Başka personel ve yönetici göremez.</p>' +
-      '<label>Başlık<input id="noteTitle" placeholder="Örn: haftalık saha turu" /></label>' +
-      '<label>İçerik<textarea id="noteBody" placeholder="Tespit sırasında aklında kalanları buraya yaz."></textarea></label>' +
+      '<label>Başlık<input id="noteTitle" autocomplete="off" placeholder="Örn: haftalık saha turu" /></label>' +
+      '<label>İçerik<textarea id="noteBody" autocomplete="off" autocorrect="off" spellcheck="false" ' +
+      'placeholder="Tespit sırasında aklında kalanları buraya yaz."></textarea></label>' +
       '<button class="btn full" id="noteAdd">Not ekle</button></div>' +
       '<div class="card"><div class="overline">Kayıtlı notlar</div>' +
       '<div id="noteList"><div class="empty">Yükleniyor…</div></div></div>';
@@ -1226,18 +1417,10 @@
     page.innerHTML =
       '<div class="card"><div class="overline">Personel yetki başvuruları</div>' +
       '<div id="appList"><div class="empty">Yükleniyor…</div></div></div>' +
-      '<div class="card"><div class="overline">İlçe sınırları</div>' +
-      '<p class="muted" style="margin:6px 0 10px">Bildirimlerin doğru personele gitmesi için ilçe sınırlarının bir kez yüklenmesi gerekir.</p>' +
-      '<div class="row"><select id="syncProvince" class="grow"><option value="">İl seç…</option>' +
-      TR_ILLER.map(function (il) {
-        return '<option value="' + esc(il) + '">' + esc(il) + "</option>";
-      }).join("") +
-      '</select><button class="btn" id="syncBtn">Yükle</button></div>' +
-      '<div id="yukluIller" class="muted" style="margin-top:8px"></div>' +
-      '<p class="muted" style="margin:9px 0 0" id="syncInfo"></p></div>' +
+
       '<div class="card"><div class="overline">Duyuru yayınla</div>' +
-      '<label>Başlık<input id="duyuruTitle" /></label>' +
-      '<label>İçerik<textarea id="duyuruBody"></textarea></label>' +
+      '<label>Başlık<input id="duyuruTitle" autocomplete="off" /></label>' +
+      '<label>İçerik<textarea id="duyuruBody" autocomplete="off" autocorrect="off" spellcheck="false"></textarea></label>' +
       '<label>Önem<select id="duyuruLevel"><option value="bilgi">Bilgi</option>' +
       '<option value="uyari">Uyarı</option><option value="acil">Acil</option></select></label>' +
       '<label>Kapsam<select id="duyuruIl"><option value="">Türkiye geneli</option>' +
@@ -1252,29 +1435,14 @@
       '<label>Açıklama<textarea id="adDescription"></textarea></label>' +
       '<label>Düğme metni<input id="adCta" placeholder="Teklif al" /></label>' +
       '<label>Web sitesi<input id="adWebsite" placeholder="https://" /></label>' +
-      '<label>WhatsApp<input id="adWhatsapp" inputmode="numeric" placeholder="905XXXXXXXXX" /></label>' +
+      '<label>WhatsApp<input id="adWhatsapp" inputmode="numeric" autocomplete="off" placeholder="905XXXXXXXXX" /></label>' +
+      '<label>Görsel bağlantısı<input id="adImage" autocomplete="off" placeholder="https://... .jpg" /></label>' +
+      '<label>Video bağlantısı<input id="adVideo" autocomplete="off" placeholder="https://... .mp4" /></label>' +
+      '<p class="muted" style="margin:-4px 0 12px">Görsel ve video, bağlantı adresiyle eklenir. Video varsa görsel yerine o gösterilir.</p>' +
       '<div class="row"><label class="grow">Başlangıç<input id="adStart" type="date" /></label>' +
       '<label class="grow">Bitiş<input id="adEnd" type="date" /></label></div>' +
       '<button class="btn full" id="adSave">Reklamı kaydet</button>' +
       '<div id="adList" style="margin-top:12px"></div></div>';
-
-    $("syncBtn").onclick = function () {
-      var il = $("syncProvince").value;
-      if (!il) return toast("Önce bir il seç.");
-      $("syncInfo").textContent = "OpenStreetMap'ten alınıyor, bu biraz sürebilir…";
-      api
-        .syncDistricts(il)
-        .then(function (result) {
-          $("syncInfo").textContent =
-            il + ": " + result.saved + " ilçe kaydedildi" +
-            (result.skipped ? ", " + result.skipped + " atlandı" : "") + ".";
-          loadProvinces();
-          return loadDistricts();
-        })
-        .catch(function (error) {
-          $("syncInfo").textContent = error.message;
-        });
-    };
 
     $("duyuruAdd").onclick = function () {
       var title = $("duyuruTitle").value.trim();
@@ -1307,11 +1475,13 @@
           cta: $("adCta").value.trim(),
           website: $("adWebsite").value.trim(),
           whatsapp: $("adWhatsapp").value.trim(),
+          imageUrl: $("adImage").value.trim(),
+          videoUrl: $("adVideo").value.trim(),
           startsOn: $("adStart").value || null,
           endsOn: $("adEnd").value || null,
         })
         .then(function () {
-          ["adCompany", "adTitle", "adDescription", "adCta", "adWebsite", "adWhatsapp"].forEach(
+          ["adCompany", "adTitle", "adDescription", "adCta", "adWebsite", "adWhatsapp", "adImage", "adVideo"].forEach(
             function (id) {
               $(id).value = "";
             },
@@ -1340,23 +1510,9 @@
     };
 
     loadDistricts();
-    loadProvinces();
     loadApplications();
     loadDuyuruYonetim();
     loadAdYonetim();
-  }
-
-  function loadProvinces() {
-    api
-      .provinces()
-      .then(function (list) {
-        var box = $("yukluIller");
-        if (!box) return;
-        box.textContent = list.length
-          ? "Sınırları yüklü iller: " + list.map(function (p) { return p.province + " (" + p.count + ")"; }).join(", ")
-          : "Henüz hiçbir ilin sınırları yüklenmedi. Bildirimlerin ilçeye atanabilmesi için en az bir il yükleyin.";
-      })
-      .catch(function () {});
   }
 
   function loadDuyuruYonetim() {
@@ -1443,6 +1599,8 @@
                 website: current.website,
                 phone: current.phone,
                 whatsapp: current.whatsapp,
+                imageUrl: current.imageUrl,
+                videoUrl: current.videoUrl,
                 startsOn: current.startsOn,
                 endsOn: current.endsOn,
                 status: current.status === "active" ? "paused" : "active",
@@ -1461,14 +1619,47 @@
   }
 
   function loadDistricts() {
+    // Tüm illerin ilçeleri tek seferde gelir; liste sunucuda gömülü olduğu için
+    // ağ hatasında boş kalma riski yok.
     return api
       .districts()
       .then(function (list) {
         state.districts = list;
+        if (state.page === "yonetim") loadApplications();
       })
       .catch(function () {
         state.districts = [];
       });
+  }
+
+  /**
+   * İl bazında gruplanmış ilçe seçenekleri. Türkiye'de 970'ten fazla ilçe var;
+   * düz liste kullanılamaz. Değer "il|ilçe" biçiminde taşınır, çünkü aynı ilçe
+   * adı birden çok ilde bulunur ve il bilgisi olmadan atama yanlış olur.
+   */
+  function bolgeSecenekleri(seciliIl, seciliIlce) {
+    var gruplar = {};
+    state.districts.forEach(function (d) {
+      (gruplar[d.province] = gruplar[d.province] || []).push(d.name);
+    });
+    return Object.keys(gruplar)
+      .sort(function (a, b) {
+        return a.localeCompare(b, "tr");
+      })
+      .map(function (il) {
+        return (
+          '<optgroup label="' + esc(il) + '">' +
+          gruplar[il]
+            .map(function (ilce) {
+              var deger = il + "|" + ilce;
+              var secili = seciliIl === il && seciliIlce === ilce ? " selected" : "";
+              return '<option value="' + esc(deger) + '"' + secili + ">" + esc(ilce) + "</option>";
+            })
+            .join("") +
+          "</optgroup>"
+        );
+      })
+      .join("");
   }
 
   function loadApplications() {
@@ -1492,18 +1683,7 @@
               '<div class="muted" style="margin-top:2px">' + tarih(a.createdAt) + "</div>" +
               '<div class="row" style="margin-top:9px">' +
               '<select data-area="' + esc(a.id) + '" class="grow"><option value="">Bölge seç…</option>' +
-              state.districts
-                .map(function (d) {
-                  // Değerde il de taşınır; aksi hâlde aynı adlı ilçeler karışır
-                  // ve onayda yanlış il yazılır.
-                  var deger = d.province + "|" + d.name;
-                  return (
-                    '<option value="' + esc(deger) + '"' +
-                    (a.district === d.name && a.province === d.province ? " selected" : "") +
-                    ">" + esc(d.name) + " (" + esc(d.province) + ")</option>"
-                  );
-                })
-                .join("") +
+              bolgeSecenekleri(a.province, a.district) +
               "</select></div>" +
               '<div class="row" style="margin-top:8px">' +
               '<button class="btn small grow" data-ok="' + esc(a.id) + '">Onayla</button>' +
@@ -1596,7 +1776,7 @@
                 list.map(function (d) {
                   return '<option value="' + esc(d.name) + '">' + esc(d.name) + "</option>";
                 }).join("")
-              : '<option value="">Bu ilin ilçeleri henüz yüklenmemiş</option>';
+              : '<option value="">Bu il için ilçe bulunamadı</option>';
           })
           .catch(function () {
             sel.innerHTML = '<option value="">İlçeler alınamadı</option>';
@@ -1604,6 +1784,10 @@
       };
 
       $("applyBtn").onclick = function () {
+        if (!$("apProvince").value || !$("apDistrict").value) {
+          hata($("applyMsg"), "Sorumlu olmak istediğin il ve ilçeyi seç.");
+          return;
+        }
         api
           .applyForStaff({
             applicantName: $("apName").value.trim(),

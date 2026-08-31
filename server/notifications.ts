@@ -10,7 +10,7 @@
  */
 import crypto from "node:crypto";
 import { pool, initSchema, type StoredUser } from "./accountStore";
-import { districtForPoint } from "./districts";
+
 
 export type NotificationKind = "konum" | "konaklama" | "denetim" | "sistem";
 
@@ -132,10 +132,17 @@ export async function notifyArea(input: {
   body?: string;
   lat: number;
   lng: number;
+  province?: string | null;
+  district?: string | null;
   actorId?: string;
 }): Promise<{ district: string | null; delivered: number }> {
   await initNotificationSchema();
-  const area = await districtForPoint(input.lat, input.lng);
+  // İlçe, kullanıcının beyanından gelir. Koordinattan poligonla bulma yöntemi
+  // dış servise bağımlıydı ve o servise ulaşılamadığında hiçbir bildirim
+  // yönlendirilemiyordu.
+  const area = input.district
+    ? { province: input.province || null, name: input.district }
+    : null;
   const recipients = await recipientsForArea(area ? area.name : null, input.actorId);
 
   for (const person of recipients) {

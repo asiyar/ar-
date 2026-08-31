@@ -32,6 +32,7 @@ export interface Ad {
   phone: string;
   whatsapp: string;
   imageUrl: string;
+  videoUrl: string;
   status: "active" | "paused";
   startsOn: string | null;
   endsOn: string | null;
@@ -65,6 +66,7 @@ export async function initContentSchema(): Promise<void> {
       phone       TEXT NOT NULL DEFAULT '',
       whatsapp    TEXT NOT NULL DEFAULT '',
       image_url   TEXT NOT NULL DEFAULT '',
+      video_url   TEXT NOT NULL DEFAULT '',
       status      TEXT NOT NULL DEFAULT 'active',
       starts_on   DATE,
       ends_on     DATE,
@@ -72,6 +74,7 @@ export async function initContentSchema(): Promise<void> {
       clicks      INTEGER NOT NULL DEFAULT 0,
       created_at  TIMESTAMPTZ NOT NULL DEFAULT now()
     );
+    ALTER TABLE ads ADD COLUMN IF NOT EXISTS video_url TEXT NOT NULL DEFAULT '';
   `);
 }
 
@@ -194,6 +197,7 @@ function toAd(row: Record<string, unknown>): Ad {
     phone: row.phone as string,
     whatsapp: row.whatsapp as string,
     imageUrl: row.image_url as string,
+    videoUrl: (row.video_url as string) || "",
     status: row.status as Ad["status"],
     startsOn: date(row.starts_on),
     endsOn: date(row.ends_on),
@@ -213,6 +217,7 @@ export async function saveAd(input: {
   phone?: string;
   whatsapp?: string;
   imageUrl?: string;
+  videoUrl?: string;
   status?: Ad["status"];
   startsOn?: string | null;
   endsOn?: string | null;
@@ -227,6 +232,7 @@ export async function saveAd(input: {
     (input.phone || "").replace(/[^\d+]/g, ""),
     (input.whatsapp || "").replace(/\D/g, ""),
     safeUrl(input.imageUrl || ""),
+    safeUrl(input.videoUrl || ""),
     input.status === "paused" ? "paused" : "active",
     input.startsOn || null,
     input.endsOn || null,
@@ -235,7 +241,7 @@ export async function saveAd(input: {
   if (input.id) {
     const result = await pool.query(
       `UPDATE ads SET company=$2, title=$3, description=$4, cta=$5, website=$6,
-         phone=$7, whatsapp=$8, image_url=$9, status=$10, starts_on=$11, ends_on=$12
+         phone=$7, whatsapp=$8, image_url=$9, video_url=$10, status=$11, starts_on=$12, ends_on=$13
        WHERE id=$1 RETURNING *`,
       [input.id, ...values],
     );
@@ -244,8 +250,8 @@ export async function saveAd(input: {
 
   const result = await pool.query(
     `INSERT INTO ads (id, company, title, description, cta, website, phone, whatsapp,
-       image_url, status, starts_on, ends_on)
-     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12) RETURNING *`,
+       image_url, video_url, status, starts_on, ends_on)
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13) RETURNING *`,
     [newId("ad"), ...values],
   );
   return toAd(result.rows[0]);

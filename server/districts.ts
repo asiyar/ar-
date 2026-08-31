@@ -9,6 +9,7 @@
  * sonraki sorgular ağa çıkmaz.
  */
 import { pool, initSchema } from "./accountStore";
+import { IL_ILCE, TR_ILLER, ilceler as yerlesikIlceler, ilceVarMi } from "./trAdres";
 
 export interface DistrictRecord {
   id: string;
@@ -93,12 +94,8 @@ export async function districtForPoint(lat: number, lng: number): Promise<Distri
 
 /** Sınırları yüklenmiş iller. Arayüz bunu il seçicisinde kullanır. */
 export async function listProvinces(): Promise<{ province: string; count: number }[]> {
-  const districts = await loadDistricts();
-  const sayac = new Map<string, number>();
-  districts.forEach((d) => sayac.set(d.province, (sayac.get(d.province) || 0) + 1));
-  return Array.from(sayac.entries())
-    .map(([province, count]) => ({ province, count }))
-    .sort((a, b) => a.province.localeCompare(b.province, "tr"));
+  // Yerleşik listeden döner: ağ erişimi veya yönetici işlemi gerektirmez.
+  return TR_ILLER.map((province) => ({ province, count: IL_ILCE[province].length }));
 }
 
 /**
@@ -126,12 +123,17 @@ export async function boundsFor(
 }
 
 export async function listDistricts(province?: string): Promise<{ province: string; name: string }[]> {
-  const districts = await loadDistricts();
-  return districts
-    .filter((d) => !province || d.province === province)
-    .map((d) => ({ province: d.province, name: d.name }))
-    .sort((a, b) => a.name.localeCompare(b.name, "tr"));
+  if (province) {
+    return yerlesikIlceler(province).map((name) => ({ province, name }));
+  }
+  const hepsi: { province: string; name: string }[] = [];
+  TR_ILLER.forEach((il) => {
+    IL_ILCE[il].forEach((name) => hepsi.push({ province: il, name }));
+  });
+  return hepsi;
 }
+
+export { ilceVarMi };
 
 interface OverpassMember {
   type: string;

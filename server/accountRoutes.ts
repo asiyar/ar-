@@ -38,12 +38,8 @@ import {
   updateNote,
   deleteNote,
 } from "./fieldwork";
-import {
-  boundsFor,
-  listDistricts,
-  listProvinces,
-  syncProvince,
-} from "./districts";
+import { listDistricts, listProvinces } from "./districts";
+import { ilVarMi, ilceVarMi } from "./trAdres";
 import {
   notifyArea,
   notifyUser,
@@ -248,37 +244,9 @@ export function registerAccountRoutes(app: Express) {
     res.json({ provinces: await listProvinces() });
   });
 
-  app.get("/api/aricimap/district-bounds", async (req, res) => {
-    const province = typeof req.query.province === "string" ? req.query.province : "";
-    if (!province) {
-      res.status(400).json({ error: "İl belirtin." });
-      return;
-    }
-    const district = typeof req.query.district === "string" ? req.query.district : null;
-    res.json({ bounds: await boundsFor(province, district) });
-  });
-
   app.get("/api/aricimap/districts", async (req, res) => {
     const province = typeof req.query.province === "string" ? req.query.province : undefined;
     res.json({ districts: await listDistricts(province) });
-  });
-
-  /**
-   * İlçe sınırlarını OpenStreetMap'ten çeker. Yönetici tetikler.
-   * Her açılışta çalıştırılmaz: Overpass tekrarlı otomatik sorguları kısıtlar.
-   */
-  app.post("/api/aricimap/districts/sync", requireUser, requireAdmin, async (req, res) => {
-    const province = asText(req.body?.province);
-    if (!province) {
-      res.status(400).json({ error: "Hangi ilin sınırlarının yükleneceğini belirtin." });
-      return;
-    }
-    try {
-      const result = await syncProvince(province);
-      res.json({ province, ...result });
-    } catch (error) {
-      res.status(502).json({ error: "İlçe sınırları alınamadı: " + (error as Error).message });
-    }
   });
 
   /** Kullanıcının kendi bildirimleri. */
@@ -308,6 +276,18 @@ export function registerAccountRoutes(app: Express) {
       res.status(400).json({ error: "Kovan sayısı 0 veya daha büyük bir tam sayı olmalı." });
       return;
     }
+    // İl ve ilçe kullanıcının beyanıdır; uydurma değer kabul edilmez.
+    const province = asText(req.body?.province);
+    const district = asText(req.body?.district);
+    if (province && !ilVarMi(province)) {
+      res.status(400).json({ error: "Geçersiz il." });
+      return;
+    }
+    if (district && !ilceVarMi(province, district)) {
+      res.status(400).json({ error: "Seçilen ilçe bu ile ait değil." });
+      return;
+    }
+
     const record = await upsertLocation(req.user!.id, {
       lat,
       lng,
@@ -315,6 +295,8 @@ export function registerAccountRoutes(app: Express) {
       place: asText(req.body?.place),
       note: asText(req.body?.note),
       source: asText(req.body?.source) || "GPS",
+      province: province || null,
+      district: district || null,
     });
     // Bildirim yalnızca konumun düştüğü ilçenin personeline ve yöneticilere gider.
     // İlçe, koordinattan poligon testiyle bulunur; istemcinin iddiasına güvenilmez.
@@ -323,9 +305,11 @@ export function registerAccountRoutes(app: Express) {
       area = await notifyArea({
         kind: "konum",
         title: `${req.user!.name} konumunu paylaştı`,
-        body: record.place || "",
+        body: [record.district, record.place].filter(Boolean).join(" · "),
         lat,
         lng,
+        province: record.province,
+        district: record.district,
         actorId: req.user!.id,
       });
     } catch (error) {
@@ -378,9 +362,21 @@ export function registerAccountRoutes(app: Express) {
   });
 
   app.post("/api/aricimap/staff-applications/:id/decide", requireUser, requireAdmin, async (req, res) => {
+    const onayIl = asText(req.body?.province);
+    const onayIlce = asText(req.body?.district);
+    if (req.body?.approve === true) {
+      if (!onayIl || !onayIlce) {
+        res.status(400).json({ error: "Onaylamadan önce il ve ilçe seçin." });
+        return;
+      }
+      if (!ilceVarMi(onayIl, onayIlce)) {
+        res.status(400).json({ error: "Seçilen ilçe bu ile ait değil." });
+        return;
+      }
+    }
     const result = await decideApplication(req.params.id, req.body?.approve === true, {
-      province: asText(req.body?.province) || null,
-      district: asText(req.body?.district) || null,
+      province: onayIl || null,
+      district: onayIlce || null,
       note: asText(req.body?.note),
     });
     if ("error" in result) {
@@ -567,6 +563,7 @@ export function registerAccountRoutes(app: Express) {
         phone: asText(req.body?.phone),
         whatsapp: asText(req.body?.whatsapp),
         imageUrl: asText(req.body?.imageUrl),
+        videoUrl: asText(req.body?.videoUrl),
         status: req.body?.status === "paused" ? "paused" : "active",
         startsOn: asText(req.body?.startsOn) || null,
         endsOn: asText(req.body?.endsOn) || null,
@@ -603,6 +600,12 @@ export function registerAccountRoutes(app: Express) {
       res.status(400).json({ error: "Kovan sayısı 0 veya daha büyük bir tam sayı olmalı." });
       return;
     }
+    const stayProvince = asText(req.body?.province);
+    const stayDistrict = asText(req.body?.district);
+    if (stayDistrict && !ilceVarMi(stayProvince, stayDistrict)) {
+      res.status(400).json({ error: "Seçilen ilçe bu ile ait değil." });
+      return;
+    }
     const result = await createStayRequest(req.user!, {
       lat,
       lng,
@@ -610,6 +613,8 @@ export function registerAccountRoutes(app: Express) {
       fromDate: asText(req.body?.fromDate) || null,
       toDate: asText(req.body?.toDate) || null,
       note: asText(req.body?.note),
+      province: stayProvince || null,
+      district: stayDistrict || null,
     });
     res.status(201).json({ request: result.request });
   });

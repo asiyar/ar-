@@ -1,43 +1,17 @@
 import { describe, it, expect, beforeEach } from "vitest";
 
-const KUZEY = [
-  [
-    [40.0, 38.5],
-    [41.0, 38.5],
-    [41.0, 39.0],
-    [40.0, 39.0],
-    [40.0, 38.5],
-  ],
-];
-const GUNEY = [
-  [
-    [40.0, 38.0],
-    [41.0, 38.0],
-    [41.0, 38.5],
-    [40.0, 38.5],
-    [40.0, 38.0],
-  ],
-];
-
 async function fresh() {
   const accounts = await import("./accountStore");
-  const districts = await import("./districts");
   const notifications = await import("./notifications");
   const applications = await import("./staffApplications");
   const fieldwork = await import("./fieldwork");
 
   await accounts.resetForTests();
-  await districts.initDistrictSchema();
   await notifications.initNotificationSchema();
   await applications.initApplicationSchema();
   await fieldwork.initFieldworkSchema();
-  await accounts.pool.query("TRUNCATE districts CASCADE");
-  districts.clearDistrictCache();
-  await districts.saveDistrict("Diyarbakır", "Kuzey", KUZEY);
-  await districts.saveDistrict("Diyarbakır", "Guney", GUNEY);
-  districts.clearDistrictCache();
 
-  return { accounts, districts, notifications, applications, fieldwork };
+  return { accounts, notifications, applications, fieldwork };
 }
 
 async function makeUser(ctx: Awaited<ReturnType<typeof fresh>>, name: string, phone: string) {
@@ -89,7 +63,7 @@ describe("arıcı kaydı ve personel başvurusu", () => {
       institution: "Diyarbakır İl Tarım ve Orman Müdürlüğü",
       title: "Veteriner Hekim",
       institutionEmail: "ayse.yilmaz@tarimorman.gov.tr",
-      district: "Kuzey",
+      district: "Kulp",
     });
     expect("application" in result).toBe(true);
     const pending = await ctx.applications.listApplications("beklemede");
@@ -121,20 +95,20 @@ describe("arıcı kaydı ve personel başvurusu", () => {
       institution: "Kurum",
       title: "Unvan",
       institutionEmail: "a@b.gov.tr",
-      district: "Kuzey",
+      district: "Kulp",
     });
     if (!("application" in created)) throw new Error("başvuru oluşmadı");
 
     const decided = await ctx.applications.decideApplication(created.application.id, true, {
       province: "Diyarbakır",
-      district: "Kuzey",
+      district: "Kulp",
     });
     expect("application" in decided).toBe(true);
 
     const updated = await reload(ctx, aday.id);
     expect(updated.role).toBe("personel");
     expect(updated.staffCode).toBe("P-001");
-    expect(updated.district).toBe("Kuzey");
+    expect(updated.district).toBe("Kulp");
   });
 
   it("reddedilen başvuru yetki vermez", async () => {
@@ -164,7 +138,7 @@ describe("arıcı kaydı ve personel başvurusu", () => {
       institutionEmail: "a@b.gov.tr",
     });
     if (!("application" in created)) throw new Error("başvuru oluşmadı");
-    await ctx.applications.decideApplication(created.application.id, true, { district: "Kuzey" });
+    await ctx.applications.decideApplication(created.application.id, true, { district: "Kulp" });
     const again = await ctx.applications.decideApplication(created.application.id, true, {});
     expect("error" in again).toBe(true);
   });
@@ -194,8 +168,8 @@ describe("saha tespiti ve not defteri", () => {
     kuzeyPersoneli = p1.id;
     guneyPersoneli = p2.id;
     for (const [id, ilce] of [
-      [kuzeyPersoneli, "Kuzey"],
-      [guneyPersoneli, "Guney"],
+      [kuzeyPersoneli, "Kulp"],
+      [guneyPersoneli, "Lice"],
     ] as const) {
       const app = await ctx.applications.submitApplication({
         userId: id,
@@ -203,6 +177,7 @@ describe("saha tespiti ve not defteri", () => {
         institution: "Kurum",
         title: "Unvan",
         institutionEmail: "p@b.gov.tr",
+        province: "Diyarbakır",
         district: ilce,
       });
       if (!("application" in app)) throw new Error("başvuru oluşmadı");
@@ -214,8 +189,8 @@ describe("saha tespiti ve not defteri", () => {
 
     const murat = await makeUser(ctx, "Murat Tekin", "05550000004");
     const veli = await makeUser(ctx, "Veli", "05550000005");
-    const l1 = await ctx.accounts.upsertLocation(murat.id, { lat: 38.7, lng: 40.5, hives: 520 });
-    const l2 = await ctx.accounts.upsertLocation(veli.id, { lat: 38.2, lng: 40.5, hives: 60 });
+    const l1 = await ctx.accounts.upsertLocation(murat.id, { lat: 38.7, lng: 40.5, hives: 520, province: "Diyarbakır", district: "Kulp" });
+    const l2 = await ctx.accounts.upsertLocation(veli.id, { lat: 38.2, lng: 40.5, hives: 60, province: "Diyarbakır", district: "Lice" });
     muratKonumu = l1.id;
     guneyKonumu = l2.id;
   });
@@ -293,7 +268,7 @@ describe("saha tespiti ve not defteri", () => {
     const not = await ctx.fieldwork.addNote(kuzeyPersoneli, {
       title: "Kuzey turu",
       body: "3 arılık kaldı",
-      district: "Kuzey",
+      district: "Kulp",
     });
     const guncel = await ctx.fieldwork.updateNote(kuzeyPersoneli, not.id, { body: "2 arılık kaldı" });
     expect("note" in guncel && guncel.note.body).toBe("2 arılık kaldı");

@@ -33,6 +33,8 @@ export interface StoredUser {
 export interface StoredLocation {
   id: string;
   userId: string;
+  province: string | null;
+  district: string | null;
   lat: number;
   lng: number;
   hives: number | null;
@@ -92,6 +94,8 @@ export function initSchema(): Promise<void> {
         place      TEXT NOT NULL DEFAULT '',
         note       TEXT NOT NULL DEFAULT '',
         source     TEXT NOT NULL DEFAULT 'GPS',
+        province   TEXT,
+        district   TEXT,
         updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
       );
       CREATE TABLE IF NOT EXISTS sessions (
@@ -100,6 +104,8 @@ export function initSchema(): Promise<void> {
         expires_at TIMESTAMPTZ NOT NULL
       );
       CREATE INDEX IF NOT EXISTS sessions_expiry ON sessions(expires_at);
+      ALTER TABLE locations ADD COLUMN IF NOT EXISTS province TEXT;
+      ALTER TABLE locations ADD COLUMN IF NOT EXISTS district TEXT;
     `);
   })();
   return ready;
@@ -298,15 +304,25 @@ export async function decideUser(userId: string, approve: boolean, asStaff: bool
 
 export async function upsertLocation(
   userId: string,
-  input: { lat: number; lng: number; hives?: number | null; place?: string; note?: string; source?: string },
+  input: {
+    lat: number;
+    lng: number;
+    hives?: number | null;
+    place?: string;
+    note?: string;
+    source?: string;
+    province?: string | null;
+    district?: string | null;
+  },
 ): Promise<StoredLocation> {
   await initSchema();
   const result = await pool.query(
-    `INSERT INTO locations (id, user_id, lat, lng, hives, place, note, source, updated_at)
-     VALUES ($1,$2,$3,$4,$5,$6,$7,$8, now())
+    `INSERT INTO locations (id, user_id, lat, lng, hives, place, note, source, province, district, updated_at)
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10, now())
      ON CONFLICT (user_id) DO UPDATE SET
        lat = EXCLUDED.lat, lng = EXCLUDED.lng, hives = EXCLUDED.hives,
        place = EXCLUDED.place, note = EXCLUDED.note, source = EXCLUDED.source,
+       province = EXCLUDED.province, district = EXCLUDED.district,
        updated_at = now()
      RETURNING *`,
     [
@@ -318,12 +334,16 @@ export async function upsertLocation(
       input.place || "",
       input.note || "",
       input.source || "GPS",
+      input.province || null,
+      input.district || null,
     ],
   );
   const row = result.rows[0];
   return {
     id: row.id,
     userId: row.user_id,
+    province: row.province,
+    district: row.district,
     lat: row.lat,
     lng: row.lng,
     hives: row.hives,
@@ -352,6 +372,8 @@ export async function locationsVisibleTo(user: StoredUser) {
   return result.rows.map((row) => ({
     id: row.id,
     userId: row.user_id,
+    province: row.province as string | null,
+    district: row.district as string | null,
     lat: row.lat,
     lng: row.lng,
     hives: row.hives,

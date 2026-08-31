@@ -1,29 +1,20 @@
 import { describe, it, expect, beforeEach } from "vitest";
 
-const KUZEY = [[[40.0, 38.5], [41.0, 38.5], [41.0, 39.0], [40.0, 39.0], [40.0, 38.5]]];
-const GUNEY = [[[40.0, 38.0], [41.0, 38.0], [41.0, 38.5], [40.0, 38.5], [40.0, 38.0]]];
-
 async function fresh() {
   const accounts = await import("./accountStore");
-  const districts = await import("./districts");
   const notifications = await import("./notifications");
   const applications = await import("./staffApplications");
   const content = await import("./content");
   const stay = await import("./stayRequests");
 
   await accounts.resetForTests();
-  await districts.initDistrictSchema();
   await notifications.initNotificationSchema();
   await applications.initApplicationSchema();
   await content.initContentSchema();
   await stay.initStaySchema();
-  await accounts.pool.query("TRUNCATE districts, announcements, ads, stay_requests CASCADE");
-  districts.clearDistrictCache();
-  await districts.saveDistrict("Diyarbakır", "Kuzey", KUZEY);
-  await districts.saveDistrict("Diyarbakır", "Guney", GUNEY);
-  districts.clearDistrictCache();
+  await accounts.pool.query("TRUNCATE announcements, ads, stay_requests CASCADE");
 
-  return { accounts, districts, notifications, applications, content, stay };
+  return { accounts, notifications, applications, content, stay };
 }
 
 async function user(ctx: Awaited<ReturnType<typeof fresh>>, name: string, phone: string) {
@@ -78,7 +69,7 @@ describe("duyurular", () => {
 
   it("Türkiye geneli duyuru herkese gider", async () => {
     await ctx.content.createAnnouncement({ title: "Genel duyuru" });
-    const diyarbakirli = await ctx.content.announcementsFor({ province: "Diyarbakır", district: "Kuzey" });
+    const diyarbakirli = await ctx.content.announcementsFor({ province: "Diyarbakır", district: "Kulp" });
     const ankarali = await ctx.content.announcementsFor({ province: "Ankara", district: null });
     const bolgesiz = await ctx.content.announcementsFor({});
     expect(diyarbakirli).toHaveLength(1);
@@ -95,25 +86,20 @@ describe("duyurular", () => {
 
   it("ilçe duyurusu yalnızca o ilçedekilere gider", async () => {
     await ctx.content.createAnnouncement({
-      title: "Kuzey duyurusu", province: "Diyarbakır", district: "Kuzey",
+      title: "Kuzey duyurusu", province: "Diyarbakır", district: "Kulp",
     });
-    expect(await ctx.content.announcementsFor({ province: "Diyarbakır", district: "Kuzey" })).toHaveLength(1);
-    expect(await ctx.content.announcementsFor({ province: "Diyarbakır", district: "Guney" })).toHaveLength(0);
+    expect(await ctx.content.announcementsFor({ province: "Diyarbakır", district: "Kulp" })).toHaveLength(1);
+    expect(await ctx.content.announcementsFor({ province: "Diyarbakır", district: "Lice" })).toHaveLength(0);
     expect(await ctx.content.announcementsFor({ province: "Diyarbakır" })).toHaveLength(0);
   });
 
   it("il seçilmeden ilçe verilirse ilçe yok sayılır", async () => {
-    const d = await ctx.content.createAnnouncement({ title: "X", district: "Kuzey" });
+    const d = await ctx.content.createAnnouncement({ title: "X", district: "Kulp" });
     expect(d.province).toBeNull();
     expect(d.district).toBeNull();
   });
 
-  it("sınırları yüklü iller listelenir", async () => {
-    const iller = await ctx.districts.listProvinces();
-    expect(iller).toHaveLength(1);
-    expect(iller[0].province).toBe("Diyarbakır");
-    expect(iller[0].count).toBe(2);
-  });
+
 
 });
 
@@ -191,20 +177,18 @@ describe("konaklama talepleri", () => {
     yonetici = await user(ctx, "Yonetici", "05550000001");
     const p1 = await user(ctx, "Kuzey Personeli", "05550000002");
     const p2 = await user(ctx, "Guney Personeli", "05550000003");
-    kuzeyPersoneli = await makeStaff(ctx, p1.id, "Kuzey");
-    guneyPersoneli = await makeStaff(ctx, p2.id, "Guney");
+    kuzeyPersoneli = await makeStaff(ctx, p1.id, "Kulp");
+    guneyPersoneli = await makeStaff(ctx, p2.id, "Lice");
     arici = await user(ctx, "Murat Tekin", "05550000004");
     digerArici = await user(ctx, "Veli", "05550000005");
   });
 
   it("talep ilçeye göre etiketlenir ve o ilçenin personeline bildirilir", async () => {
     const created = await ctx.stay.createStayRequest(arici, {
-      lat: 38.7,
-      lng: 40.5,
-      hives: 120,
-      fromDate: "2026-09-01",
+      lat: 38.7, lng: 40.5, hives: 120, fromDate: "2026-09-01",
+      province: "Diyarbakır", district: "Kulp",
     });
-    expect(created.request.district).toBe("Kuzey");
+    expect(created.request.district).toBe("Kulp");
     expect(await ctx.notifications.unreadCount(kuzeyPersoneli.id)).toBeGreaterThan(0);
 
     const guneyBildirim = (await ctx.notifications.listNotifications(guneyPersoneli.id)).filter(
@@ -214,8 +198,8 @@ describe("konaklama talepleri", () => {
   });
 
   it("arıcı yalnızca kendi taleplerini görür", async () => {
-    await ctx.stay.createStayRequest(arici, { lat: 38.7, lng: 40.5 });
-    await ctx.stay.createStayRequest(digerArici, { lat: 38.7, lng: 40.6 });
+    await ctx.stay.createStayRequest(arici, { lat: 38.7, lng: 40.5, province: "Diyarbakır", district: "Kulp" });
+    await ctx.stay.createStayRequest(digerArici, { lat: 38.7, lng: 40.6, province: "Diyarbakır", district: "Kulp" });
 
     const benim = await ctx.stay.listStayRequests(arici);
     expect(benim).toHaveLength(1);
@@ -225,27 +209,27 @@ describe("konaklama talepleri", () => {
   });
 
   it("personel yalnızca kendi ilçesindeki talepleri görür", async () => {
-    await ctx.stay.createStayRequest(arici, { lat: 38.7, lng: 40.5 });
-    await ctx.stay.createStayRequest(digerArici, { lat: 38.2, lng: 40.5 });
+    await ctx.stay.createStayRequest(arici, { lat: 38.7, lng: 40.5, province: "Diyarbakır", district: "Kulp" });
+    await ctx.stay.createStayRequest(digerArici, { lat: 38.2, lng: 40.5, province: "Diyarbakır", district: "Lice" });
 
     const kuzey = await ctx.stay.listStayRequests(kuzeyPersoneli);
     expect(kuzey).toHaveLength(1);
-    expect(kuzey[0].district).toBe("Kuzey");
+    expect(kuzey[0].district).toBe("Kulp");
     expect(kuzey[0].ownerPhone).toBe("05550000004");
 
     const guney = await ctx.stay.listStayRequests(guneyPersoneli);
     expect(guney).toHaveLength(1);
-    expect(guney[0].district).toBe("Guney");
+    expect(guney[0].district).toBe("Lice");
   });
 
   it("yönetici bütün talepleri görür", async () => {
-    await ctx.stay.createStayRequest(arici, { lat: 38.7, lng: 40.5 });
-    await ctx.stay.createStayRequest(digerArici, { lat: 38.2, lng: 40.5 });
+    await ctx.stay.createStayRequest(arici, { lat: 38.7, lng: 40.5, province: "Diyarbakır", district: "Kulp" });
+    await ctx.stay.createStayRequest(digerArici, { lat: 38.2, lng: 40.5, province: "Diyarbakır", district: "Lice" });
     expect(await ctx.stay.listStayRequests(yonetici)).toHaveLength(2);
   });
 
   it("personel kendi ilçesindeki talebi karara bağlar ve arıcı bilgilendirilir", async () => {
-    const created = await ctx.stay.createStayRequest(arici, { lat: 38.7, lng: 40.5 });
+    const created = await ctx.stay.createStayRequest(arici, { lat: 38.7, lng: 40.5, province: "Diyarbakır", district: "Kulp" });
     const decided = await ctx.stay.decideStayRequest(
       kuzeyPersoneli,
       created.request.id,
@@ -259,13 +243,13 @@ describe("konaklama talepleri", () => {
   });
 
   it("personel başka ilçedeki talebi karara bağlayamaz", async () => {
-    const created = await ctx.stay.createStayRequest(arici, { lat: 38.7, lng: 40.5 });
+    const created = await ctx.stay.createStayRequest(arici, { lat: 38.7, lng: 40.5, province: "Diyarbakır", district: "Kulp" });
     const denied = await ctx.stay.decideStayRequest(guneyPersoneli, created.request.id, "yer_yok");
     expect("error" in denied).toBe(true);
   });
 
   it("arıcı kendi talebini karara bağlayamaz", async () => {
-    const created = await ctx.stay.createStayRequest(arici, { lat: 38.7, lng: 40.5 });
+    const created = await ctx.stay.createStayRequest(arici, { lat: 38.7, lng: 40.5, province: "Diyarbakır", district: "Kulp" });
     const denied = await ctx.stay.decideStayRequest(arici, created.request.id, "yer_ayrildi");
     expect("error" in denied).toBe(true);
   });
@@ -275,7 +259,7 @@ describe("konaklama talepleri", () => {
     await ctx.accounts.pool.query("UPDATE users SET role = 'personel' WHERE id = $1", [bos.id]);
     const token = await ctx.accounts.createSession(bos.id);
     const taze = (await ctx.accounts.userForToken(token))!;
-    await ctx.stay.createStayRequest(arici, { lat: 38.7, lng: 40.5 });
+    await ctx.stay.createStayRequest(arici, { lat: 38.7, lng: 40.5, province: "Diyarbakır", district: "Kulp" });
     expect(await ctx.stay.listStayRequests(taze)).toHaveLength(0);
   });
 });

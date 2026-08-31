@@ -152,7 +152,8 @@ export async function locationsForFieldwork(
     // İlçesi atanmamış personel hiçbir konum görmez; yetki belirsiz kalmasın.
     if (!user.district) return [];
     params.push(user.district);
-    areaClause = `WHERE d.name = $${params.length}`;
+    // Konumun ilçesi, arıcının kendi beyanıdır.
+    areaClause = `WHERE l.district = $${params.length}`;
   }
 
   const result = await pool.query(
@@ -161,15 +162,11 @@ export async function locationsForFieldwork(
        FROM visits ORDER BY location_id, created_at DESC
      )
      SELECT l.*, u.name AS owner_name, u.phone AS owner_phone,
-            d.name AS district_name,
             z.status AS visit_status, z.hive_count AS visit_hives,
             z.note AS visit_note, z.created_at AS visit_at
      FROM locations l
      JOIN users u ON u.id = l.user_id
      LEFT JOIN son_ziyaret z ON z.location_id = l.id
-     LEFT JOIN districts d ON (
-       l.lat BETWEEN d.min_lat AND d.max_lat AND l.lng BETWEEN d.min_lng AND d.max_lng
-     )
      ${areaClause}
      ORDER BY l.updated_at DESC`,
     params,
@@ -187,7 +184,8 @@ export async function locationsForFieldwork(
     updatedAt: row.updated_at.toISOString(),
     ownerName: row.owner_name as string,
     ownerPhone: row.owner_phone as string,
-    district: (row.district_name as string) || null,
+    province: (row.province as string) || null,
+    district: (row.district as string) || null,
     inspected: row.visit_status === "gidildi",
     lastVisit: row.visit_at
       ? {

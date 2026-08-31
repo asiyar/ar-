@@ -1,50 +1,53 @@
-ARICIMAP — TEK ADIMDA YERLEŞTİRME
-==================================
+ARICIMAP — DÜZELTME PAKETİ
+===========================
 
-Bu zip, deponun klasör yapısıyla birebir aynıdır. Kök dizine açınca
-her dosya kendiliğinden doğru yere gider.
+Bu zip deponun klasör yapısıyla aynıdır. Kök dizine açınca her dosya
+kendiliğinden doğru yere gider.
 
-ADIMLAR (Codespaces)
---------------------
-1) Depo sayfası -> Code -> Codespaces -> Create codespace
-
-2) Bu zip dosyasını sol paneldeki dosya listesine SÜRÜKLE BIRAK.
-   (Tek dosya olduğu için sorunsuz yüklenir.)
-
-3) Terminal -> New Terminal -> şunu yapıştır:
+Codespaces terminalinde:
 
 cd /workspaces/ar-
-
-# Kök dizindeki yanlış yerde duran kopyaları temizle
-rm -f accountStore.ts accountRoutes.ts districts.ts notifications.ts \
-      staffApplications.ts fieldwork.ts content.ts stayRequests.ts index.ts \
-      accountStore.test.ts districts.test.ts fieldwork.test.ts content.test.ts \
-      aricimap-app.html aricimap-app.js aricimap-server-client.js \
-      Home.tsx YERLESIM.md TASIMA-KOMUTLARI.txt
-
-# Zip'i kök dizine aç (klasör yapısı korunur, üzerine yazar)
 unzip -o aricimap-yerlesim.zip
 rm -f aricimap-yerlesim.zip KURULUM.txt
-
-# Kontrol: bu iki satır dolu çıkmalı
-ls server/
-ls client/public/
-
+ls server/ && ls client/public/
 git add -A
-git commit -m "Dosyalari dogru klasorlere yerlestir"
+git commit -m "Ilce verisi gomuldu, harita ve bildirim duzeltmeleri"
 git push
 
-4) Render'da deploy'un bitmesini bekle (2-4 dakika).
+Deploy bitince APK'yı YENİDEN üret: Actions -> Android Test APK
 
-5) Tarayıcıda şunu aç:
-   https://ar-3q6i.onrender.com/api/aricimap/provinces
-   {"provinces":[]} görüyorsan YENİ KOD YAYINDA.
+BU SÜRÜMDE NE DEĞİŞTİ
+---------------------
+1. İlçe listesi artık uygulamanın içinde (81 il, 973 ilçe).
+   Önceki sürümde OpenStreetMap'ten çekiliyordu ve "fetch failed" hatası
+   veriyordu; bu yüzden yönetici personele bölge atayamıyordu.
+   Artık ağ erişimi gerekmiyor, "İlçe sınırları yükle" bölümü kaldırıldı.
 
-6) Uygulamayı aç: https://ar-3q6i.onrender.com
-   İlk kaydolan kişi kurucu yönetici olur.
+2. Harita: uydu görüntüsü eklendi ve varsayılan katman oldu.
+   Arıcı dağda kendi arazisini uydu görüntüsünden tanıyabilir.
+   Sağ üstteki katman düğmesiyle yol haritasına geçilebilir.
+   GPS alındığında 17 kat yakınlaşır ve doğruluk çemberi çizilir.
 
-7) Yönetici -> Yönetim -> İlçe sınırları -> il seç -> Yükle
-   Bu yapılmazsa bildirimler ilçeye atanamaz.
+3. Konum kaydında il ve ilçe seçimi ZORUNLU.
+   Bildirimin hangi ilçe sorumlusuna gideceğini bu belirler.
 
-8) APK'yı YENİDEN üret: Actions -> Android Test APK -> Run workflow
-   Eski APK eski kodu taşır.
+4. Reklam panosu haritanın hemen altına alındı.
+   Görsel ve video bağlantısı eklenebiliyor (video varsa o gösterilir).
+
+5. Mesajlar artık tıklanabilir; tam içerik açılır, konum varsa
+   "Haritada göster" düğmesi çıkar, açılınca okundu sayılır.
+
+6. Duyurular mesaj kutusunda da listeleniyor.
+
+7. Metin alanlarında tarayıcı geçmişi önerileri kapatıldı.
+   Tespit notunda sabit öneri düğmeleri var.
+
+8. Personel başvurusunda ve onayında il + ilçe zorunlu; sunucu ilçenin
+   gerçekten o ile ait olduğunu doğruluyor.
+
+BİLİNEN EKSİKLER
+----------------
+- Anlık bildirim (push) yok; bildirimler uygulama içi kutuda birikir.
+- Parola sıfırlama yok.
+- Girişte deneme sınırı yok.
+- site/privacy.html hâlâ "veriler cihazdan çıkmaz" diyor; artık doğru değil.

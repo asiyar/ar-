@@ -9,7 +9,7 @@
  */
 import crypto from "node:crypto";
 import { pool, initSchema, type StoredUser } from "./accountStore";
-import { districtForPoint } from "./districts";
+
 import { notifyArea, notifyUser } from "./notifications";
 
 export type StayStatus = "beklemede" | "yer_ayrildi" | "yer_yok";
@@ -88,11 +88,14 @@ export async function createStayRequest(
     fromDate?: string | null;
     toDate?: string | null;
     note?: string;
+    province?: string | null;
+    district?: string | null;
   },
 ) {
   await initStaySchema();
-  // İlçe koordinattan bulunur; istemcinin gönderdiği bilgiye güvenilmez.
-  const area = await districtForPoint(input.lat, input.lng);
+  // İlçe kullanıcının beyanından gelir; dış servise bağımlı poligon araması
+  // ulaşılamadığında tüm akış duruyordu.
+  const area = input.district ? { province: input.province || null, name: input.district } : null;
   const result = await pool.query(
     `INSERT INTO stay_requests (id, user_id, lat, lng, district, hives, from_date, to_date, note)
      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING *`,
@@ -118,6 +121,8 @@ export async function createStayRequest(
       (input.fromDate ? " · " + input.fromDate : ""),
     lat: input.lat,
     lng: input.lng,
+    province: area ? area.province : null,
+    district: area ? area.name : null,
     actorId: user.id,
   });
 
