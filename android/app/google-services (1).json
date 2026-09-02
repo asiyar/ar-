@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "328615207609",
+    "project_id": "aricimap-4f54c",
+    "storage_bucket": "aricimap-4f54c.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:328615207609:android:3f3c2a29c64f2aad13b168",
+        "android_client_info": {
+          "package_name": "com.arcadianstore.aricimap"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAFm9dYgdQ6uk7GGMX_yWI1vyB3EfhMy6g"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
