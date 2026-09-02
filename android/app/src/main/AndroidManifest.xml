@@ -33,11 +33,21 @@
                 android:name="android.support.FILE_PROVIDER_PATHS"
                 android:resource="@xml/file_paths"></meta-data>
         </provider>
+
+        <!-- Uygulama kapalıyken gelen bildirimlerin düşeceği kanal.
+             Sunucu tarafı da aynı kanal adını gönderiyor. -->
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_channel_id"
+            android:value="aricimap" />
     </application>
 
     <!-- Permissions -->
 
     <uses-permission android:name="android.permission.INTERNET" />
+
+    <!-- Android 13 ve üstünde bildirim göstermek için açık izin gerekir.
+         Tanımlı olmazsa izin penceresi hiç çıkmaz ve push sessizce çalışmaz. -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
 </manifest>

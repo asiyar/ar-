@@ -1,0 +1,57 @@
+FIREBASE PUSH KURULUMU — SANA KALAN 3 ADIM
+===========================================
+
+Firebase'in ekranda gösterdiği uzun Gradle talimatlarını YAPMA.
+Capacitor o ayarları zaten üretmiş; kontrol ettim:
+
+  android/build.gradle      -> classpath 'com.google.gms:google-services:4.4.4'  VAR
+  android/app/build.gradle  -> google-services eklentisi koşullu uygulanıyor      VAR
+  .gitignore                -> google-services.json'u engellemiyor                TEMİZ
+
+Firebase ekranında "Groovy (build.gradle)" seçeneğini işaretle (Kotlin DSL değil),
+sonra o adımları atlayıp "Next" ile ilerle.
+
+Bu pakette senin için hazırladığım iki düzeltme var:
+  android/variables.gradle              -> firebaseMessagingVersion eklendi
+  android/app/src/main/AndroidManifest.xml -> POST_NOTIFICATIONS izni + bildirim kanalı
+
+Bunlar olmadan Android derlemesi çöker veya izin penceresi hiç çıkmaz.
+
+
+SANA KALAN ADIMLAR
+------------------
+
+ADIM 1 — google-services.json dosyasını depoya koy
+  Firebase konsolundan indirdiğin dosyayı şuraya koy:
+      android/app/google-services.json
+  GitHub'da: android/app klasörüne gir -> Add file -> Upload files
+
+ADIM 2 — Servis hesabı anahtarını Render'a gir
+  Firebase konsolu -> dişli simgesi -> Project settings
+  -> Service accounts sekmesi -> "Generate new private key" -> JSON iner
+
+  Render -> Environment -> Add Environment Variable
+      Key   : FCM_SERVICE_ACCOUNT
+      Value : inen JSON dosyasının TAMAMI (tek satır halinde yapıştır)
+
+  Bu JSON özel anahtar içerir. GitHub'a koyma, kimseyle paylaşma.
+
+ADIM 3 — APK'yı yeniden üret
+  GitHub -> Actions -> Android Test APK -> Run workflow
+
+
+KONTROL
+-------
+1) https://ar-3q6i.onrender.com/api/aricimap/push-status
+   {"enabled":true} görmelisin. false ise FCM_SERVICE_ACCOUNT yanlış girilmiş.
+
+2) Yeni APK'yı kur, giriş yap. Telefon bildirim izni istemeli.
+
+3) Başka bir telefondan (veya tarayıcıdan) o bölgede konum paylaş.
+   Personelin telefonunda kilit ekranı bildirimi çıkmalı.
+
+
+YAPILANDIRMAZSAN
+----------------
+Uygulama normal çalışır, sadece kilit ekranı bildirimi çıkmaz.
+Bildirimler uygulama içi mesaj kutusunda birikmeye devam eder.
