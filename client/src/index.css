@@ -42,7 +42,6 @@
   * { box-sizing: border-box; }
   html { background: var(--cream); }
   
-  /* BU TEK SATIR: Uygulamanın en tepesindeki her şeyi telefonun saat/pil alanından aşağı iter */
   body { 
     margin: 0; 
     min-width: 320px; 
@@ -50,7 +49,11 @@
     color: var(--ink); 
     font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; 
     -webkit-font-smoothing: antialiased; 
-    padding-top: env(safe-area-inset-top); 
+  }
+
+  /* KESİN ÇÖZÜM: Uygulamanın en tepesindeki tüm header/üst alanları telefonun çentiğinden aşağı zorlar */
+  header, [class*="header"], [class*="top-bar"], [class*="navbar"] {
+    padding-top: max(env(safe-area-inset-top), 24px) !important;
   }
 
   button, input, select, textarea { font: inherit; }
@@ -90,7 +93,7 @@
   .role-card { min-height: 7.25rem; border: 1px solid #dce7d7; border-radius: 0.72rem; background: linear-gradient(145deg, #fbfdf9, #f0f6ea); padding: 0.9rem; transition: border-color 160ms var(--ease-out), transform 160ms var(--ease-out), box-shadow 160ms var(--ease-out); }
   .role-card:hover { border-color: #bcd9ba; box-shadow: 0 12px 22px -18px rgb(36 63 45 / 35%); transform: translateY(-2px); }
   .sidebar-note { margin-top: auto; border: 1px solid rgb(255 255 255 / 11%); border-radius: 0.64rem; padding: 0.75rem 0.62rem; background: rgb(255 255 255 / 6%); }
-  .atlas-modal-scrim { position: fixed; inset: 0; z-index: 60; display: grid; place-items: center; padding: 1rem; background: rgb(25 45 29 / 45%); backdrop-filter: blur(2px); }
+  .atlas-modal-scrim { project: fixed; inset: 0; z-index: 60; display: grid; place-items: center; padding: 1rem; background: rgb(25 45 29 / 45%); backdrop-filter: blur(2px); }
   .atlas-modal { position: relative; max-height: 90vh; width: min(32rem, calc(100% - 1.5rem)); overflow: auto; border: 1px solid #e3e5db; border-radius: 0.94rem; padding: 1.4rem; background: #fffefa; box-shadow: 0 26px 75px rgb(22 45 28 / 30%); }
   .atlas-input { width: 100%; margin-top: 0.34rem; border: 1px solid #d8e1d4; border-radius: 0.45rem; padding: 0.55rem 0.6rem; background: #fcfdf9; color: #334d37; font-size: 0.75rem; }
   .atlas-input:focus { border-color: #b9ceaa; outline: none; }
