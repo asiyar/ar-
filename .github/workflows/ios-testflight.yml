@@ -2,6 +2,11 @@ name: iOS TestFlight
 
 on:
   workflow_dispatch:
+    inputs:
+      build_number:
+        description: 'Build Numarası (Varsayılan için boş bırakın)'
+        required: false
+        default: ''
   push:
     tags:
       - 'ios-v*'
@@ -18,10 +23,6 @@ env:
 jobs:
   build-and-upload:
     name: Build and upload iOS IPA
-    # Önceki başarısız derlemeler macos-14 (Xcode 15.4) üzerinde çalışıyordu.
-    # Capacitor 8.5 ve @capacitor/geolocation'ın SPM paketleri Swift 5.9+ ve
-    # güncel bir Xcode bekliyor; GeolocationPlugin hedefindeki derleme hatasının
-    # en olası sebebi budur.
     runs-on: macos-26
     timeout-minutes: 60
 
@@ -32,9 +33,6 @@ jobs:
       - name: Show Xcode version
         run: xcodebuild -version
 
-      # Sürüm bilinçli olarak verilmiyor: action, package.json içindeki
-      # "packageManager" alanını okur. İkisi birden verilirse
-      # "Multiple versions of pnpm specified" hatası alınır.
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
 
@@ -88,7 +86,7 @@ jobs:
       - name: Archive
         env:
           PROFILE_NAME: ${{ steps.profile.outputs.profile-name }}
-          BUILD_NUMBER: ${{ github.run_number }}
+          BUILD_NUMBER: ${{ inputs.build_number || github.run_number }}
         run: |
           xcodebuild \
             -project ios/App/App.xcodeproj \
@@ -110,6 +108,7 @@ jobs:
       - name: Export IPA
         env:
           PROFILE_NAME: ${{ steps.profile.outputs.profile-name }}
+          BUILD_NUMBER: ${{ inputs.build_number || github.run_number }}
         run: |
           cat > "$RUNNER_TEMP/ExportOptions.plist" <<PLIST
           <?xml version="1.0" encoding="UTF-8"?>
@@ -138,8 +137,6 @@ jobs:
             -exportPath "$RUNNER_TEMP/export" \
             -exportOptionsPlist "$RUNNER_TEMP/ExportOptions.plist"
 
-      # altool, .p8 anahtarını ~/.private_keys/AuthKey_<KEYID>.p8 yolunda arar.
-      # Bu dosya yazılmazsa yükleme adımı kimlik doğrulayamaz.
       - name: Upload to TestFlight
         env:
           APPSTORE_KEY_ID: ${{ secrets.APPSTORE_KEY_ID }}
