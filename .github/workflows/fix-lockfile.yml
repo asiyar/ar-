@@ -1,0 +1,50 @@
+name: Fix lockfile
+
+# Tek seferlik yardımcı workflow: pnpm-lock.yaml dosyasını package.json'a göre
+# günceller ve otomatik commit'leyip repoya geri gönderir. İşiniz bitince bu
+# dosyayı silebilirsiniz (.github/workflows/fix-lockfile.yml).
+#
+# Çalıştırmak için: Actions -> Fix lockfile -> Run workflow
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+env:
+  NODE_VERSION: "22"
+
+jobs:
+  fix-lockfile:
+    name: Update pnpm-lock.yaml
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+
+      - name: Update lockfile to match package.json
+        run: pnpm install --no-frozen-lockfile
+
+      - name: Commit and push updated lockfile
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          if git diff --quiet -- pnpm-lock.yaml; then
+            echo "pnpm-lock.yaml zaten güncel, değişiklik yok."
+          else
+            git add pnpm-lock.yaml
+            git commit -m "chore: pnpm-lock.yaml güncellendi"
+            git push
+          fi
