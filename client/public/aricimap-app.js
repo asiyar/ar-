@@ -1885,7 +1885,29 @@
       '<label>Yeni parola<input id="pwNext" type="password" autocomplete="new-password" placeholder="En az 6 karakter" /></label>' +
       '<button class="btn full" id="pwSave">Parolayı değiştir</button>' +
       '<p class="muted" style="margin:9px 0 0">Parola değişince tüm cihazlardaki oturumlar kapanır.</p></div>' +
+      '<div class="card"><div class="overline">Hesabımı sil</div>' +
+      '<p class="muted" style="margin:6px 0 12px">Hesabın ve tüm verilerin (konum, başvuru, not, mesaj) kalıcı olarak silinir. Bu işlem geri alınamaz.</p>' +
+      '<div id="delMsg"></div>' +
+      '<button class="btn ghost full danger" id="hesapSil">Hesabımı kalıcı olarak sil</button></div>' +
       '<div class="card"><button class="btn ghost full" id="hesapCikis">Çıkış yap</button></div>';
+
+    $("hesapSil").onclick = function () {
+      if (!confirm("Hesabın ve tüm verilerin kalıcı olarak silinecek. Emin misin?")) return;
+      var dugme = $("hesapSil");
+      dugme.disabled = true;
+      dugme.textContent = "Siliniyor…";
+      api
+        .deleteAccount()
+        .then(function () {
+          toast("Hesabın silindi.");
+          showAuth();
+        })
+        .catch(function (error) {
+          hata($("delMsg"), error.message);
+          dugme.disabled = false;
+          dugme.textContent = "Hesabımı kalıcı olarak sil";
+        });
+    };
 
     $("pwSave").onclick = function () {
       api
@@ -1965,6 +1987,28 @@
    * sessizce atlanır. Uygulama iframe içinde çalıştığı sürece de eklentiye
    * erişilemiyordu, bu yüzden iframe kaldırıldı.
    */
+  /**
+   * Durum çubuğunun (saat/pil/sinyal) uygulama içeriğinin üzerine binmesini
+   * engeller. Android 15+ ("edge-to-edge") ve iOS'ta içerik varsayılan olarak
+   * durum çubuğunun ARKASINA çiziliyor; bu çağrı olmadan capacitor.config.ts
+   * içindeki StatusBar ayarı @capacitor/status-bar eklentisi kurulu olsa bile
+   * bazı cihazlarda uygulanmıyor. CSS tarafındaki env(safe-area-inset-top)
+   * boşluğu ile birlikte kullanılmalı.
+   */
+  function statusBarAyarla() {
+    var cap = window.Capacitor;
+    var eklenti = cap && cap.Plugins && cap.Plugins.StatusBar;
+    if (!eklenti || !cap.isNativePlatform || !cap.isNativePlatform()) return;
+
+    Promise.resolve()
+      .then(function () {
+        return eklenti.setOverlaysWebView({ overlay: false });
+      })
+      .catch(function (error) {
+        console.warn("Durum çubuğu ayarlanamadı", error);
+      });
+  }
+
   function pushKaydet() {
     var cap = window.Capacitor;
     var eklenti = cap && cap.Plugins && cap.Plugins.PushNotifications;
@@ -2020,6 +2064,7 @@
   }
 
   function start() {
+    statusBarAyarla();
     wireAuth();
     if (api.currentUser) {
       state.user = api.currentUser;
