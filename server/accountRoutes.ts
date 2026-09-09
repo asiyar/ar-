@@ -66,6 +66,7 @@ import {
   userForToken,
   listUsers,
   decideUser,
+  deleteUser,
   upsertLocation,
   locationsVisibleTo,
   publicUser,
@@ -215,6 +216,22 @@ export function registerAccountRoutes(app: Express) {
       return;
     }
     res.json({ user: publicUser(req.user) });
+  });
+
+  /**
+   * Hesabımı Sil (App Store Guideline 5.1.1v): kullanıcı hesap onay
+   * durumundan bağımsız olarak kendi hesabını uygulama içinden kalıcı
+   * olarak silebilmeli. Bu yüzden requireUser (onaylı şart koşan) yerine
+   * yalnızca oturum açık mı diye bakılır.
+   */
+  app.delete("/api/aricimap/me", async (req: AuthedRequest, res) => {
+    if (!req.user) {
+      res.status(401).json({ error: "Oturum yok." });
+      return;
+    }
+    await deleteUser(req.user.id);
+    await destroySession(readToken(req));
+    res.json({ ok: true });
   });
 
   /** Yönetici: bekleyen ve karara bağlanmış tüm kayıtlar. */
