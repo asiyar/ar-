@@ -258,6 +258,16 @@ export async function destroySession(token: string | undefined): Promise<void> {
   await pool.query("DELETE FROM sessions WHERE token = $1", [token]);
 }
 
+/**
+ * Hesabı ve tüm ilişkili verilerini (konum, oturum, başvuru, not, konaklama
+ * talebi vb.) kalıcı olarak siler. İlgili tablolar users(id) üzerinde
+ * ON DELETE CASCADE tanımlı olduğu için tek sorgu yeterlidir.
+ */
+export async function deleteUser(userId: string): Promise<void> {
+  await initSchema();
+  await pool.query("DELETE FROM users WHERE id = $1", [userId]);
+}
+
 export async function listUsers(): Promise<StoredUser[]> {
   await initSchema();
   const result = await pool.query<UserRow>("SELECT * FROM users ORDER BY created_at ASC");
