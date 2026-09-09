@@ -202,6 +202,12 @@
       storeToken(null);
       api.currentUser = null;
     },
+    /** Hesabı ve tüm verilerini kalıcı olarak siler (App Store 5.1.1v). */
+    deleteAccount: async () => {
+      await request("DELETE", "/me");
+      storeToken(null);
+      api.currentUser = null;
+    },
     me: async () => {
       const data = await request("GET", "/me");
       api.currentUser = data.user;
