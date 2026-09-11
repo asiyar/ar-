@@ -51,10 +51,23 @@ Uygulamada sabit il veya ilçe yoktur:
 - Personel başvurusunda il ve ilçe listeden seçilir.
 - Aynı adlı ilçeler farklı illerde olabildiği için bölge seçimi ili de taşır.
 
-## Bu sürümde olmayan
+## Bu sürümde olmayan / sınırlar
 
-- Anlık bildirim (push).
-- Parola sıfırlama.
-- Girişte deneme sınırı.
-- Yöneticinin kullanıcı listesi / bölge değiştirme ekranı.
-- site/privacy.html hâlâ "veriler cihazdan çıkmaz" diyor; ARTIK DOĞRU DEĞİL.
+- iOS'ta anlık bildirim (push): Android'de FCM çalışır, iOS'ta APNs kurulumu bekler.
+- Kullanıcı parolasını e-posta/SMS ile kendisi sıfırlayamaz; kurtarma anahtarı veya yönetici gerekir.
+- Girişte deneme sınırı (rate limit) yok.
+- Kamera / QR tarama yok.
+- Harita karoları henüz lisanslı bir sağlayıcıya taşınmadı (OSM/Esri/CARTO).
+
+## 11 Eylül 2026 denetiminde yapılanlar
+
+- `site/privacy.html` ve `client/public/privacy.html` artık gerçek veri akışını anlatıyor
+  (hesap, sunucu veritabanı, konum paylaşımı, push jetonu). `site/support.html` ve yeni
+  `client/public/support.html` aynı şekilde güncellendi.
+- Uygulama içinden gizlilik ve destek metinleri okunabiliyor (Hesap sekmesi → Yasal ve destek).
+- Kimlik doğrulamasız `/api/aricimap/state` uç noktası ve `server/stateStore.ts` kaldırıldı.
+- Kökteki ölü dosya kopyaları, `server/stateStore.ts`, `server/stateStore.test.ts` ve
+  `client/public/aricimap-reference.html` silindi.
+- iOS: `ITSAppUsesNonExemptEncryption`, `arm64`, `CFBundleDevelopmentRegion = tr`,
+  iPhone'a sabitlenmiş cihaz ailesi ve `PrivacyInfo.xcprivacy` eklendi.
+- Detaylı liste ve kalan işler: `docs/APP-STORE-ONCESI-DENETIM-2026-09-11.md`.

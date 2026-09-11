@@ -6,11 +6,12 @@
 
 | Alan | Mevcut kapsam |
 |---|---|
-| Saha operasyon merkezi | Öncelikli işler, risk görünümü, rota ve arılık seçimi. |
-| Arılık haritası | Konuma dayalı arılık seçimi ve koloni sağlık bağlamı. |
-| Hızlı denetim | Ana arı, koloni gücü ve saha notu için geri bildirimli kayıt akışı. |
-| QR erişimi | Doğru kovana hızlı geçiş için yerel uygulamaya taşınacak tarama akışı. |
-| Field Atlas tasarım sistemi | Belgesel saha fotoğrafçılığı, sakin hareket, sedir yeşili ve sınırlı amber aksan. |
+| Hesap ve roller | Telefon + parola ile hesap; arıcı, personel ve yönetici rolleri sunucu tarafında yetkilendirilir. |
+| Arılık haritası | Konuma dayalı arılık seçimi, il/ilçe sınırları ve harita üzerinden nokta seçimi. |
+| Saha denetimi ve defter | Ziyaret kaydı, saha notu, konaklama talebi ve denetim izi. |
+| Konum paylaşımı | Açık rıza ile konum paylaşımı; onaylı personel yalnızca kendi bölgesindeki kayıtları görür. |
+| Bildirimler | Uygulama içi mesaj kutusu; Android'de kilit ekranı bildirimi (FCM). |
+| Field Atlas tasarım sistemi | Sedir yeşili kabuk, kireçtaşı zemin ve sınırlı amber aksan. |
 
 ## Geliştirme
 
@@ -29,12 +30,22 @@ pnpm check
 pnpm build
 ```
 
-## Mobil yayın planı
+## Mobil uygulama (iOS / Android)
 
-Web prototipi, Expo/React Native ile yerel iOS ve Android uygulamasına taşınacak şekilde tasarlanmıştır. Kamera tabanlı QR tarama, hassas konum, çevrimdışı taslaklar ve push bildirimleri yerel sürümün sonraki aşamasıdır.
+Depo, Capacitor tabanlı yerel uygulama kabuğunu içerir:
 
-Detaylı mağaza yayın kontrol listesi için [`docs/STORE-RELEASE-READINESS.md`](docs/STORE-RELEASE-READINESS.md) dosyasına bakın.
+- Arayüz `client/public` altındaki varlıklardan gelir ve uygulama paketinin içinde taşınır. Leaflet yerelden servis edilir; uzaktan kod yüklenmez.
+- Sunucu `server/` altındadır: Express + PostgreSQL (Neon), Render üzerinde çalışır.
+- `ios/` ve `android/` klasörleri hazırdır; derlemeler GitHub Actions ile üretilir.
+
+Henüz **olmayan**: kamera tabanlı QR tarama ve iOS kilit ekranı bildirimi (APNs yetkisi ve anahtarı bekliyor). Bu nedenle mağaza metinlerinde QR/kamera vaadi kullanılmamalıdır.
+
+## Mağaza yayını öncesi
+
+- Yayın öncesi denetim listesi: [`docs/APP-STORE-ONCESI-DENETIM-2026-09-11.md`](docs/APP-STORE-ONCESI-DENETIM-2026-09-11.md)
+- App Review notu ve demo hesap taslağı: [`docs/APP-REVIEW-NOTLARI.md`](docs/APP-REVIEW-NOTLARI.md)
+- Yayın adımları: [`docs/YAYIN-ADIMLARI.md`](docs/YAYIN-ADIMLARI.md)
 
 ## Durum ve sınırlamalar
 
-Bu depo, etkileşimli ürün prototipini içerir. Harita konumları, görevler ve koloni metrikleri gösterim amaçlıdır; üretim için kullanıcı hesabı, veri modeli, yetki kontrolleri, gerçek harita/QR cihaz entegrasyonu ve gizlilik politikası tamamlanmalıdır.
+Uygulama hesap gerektirir ve saha kayıtlarını sunucudaki veritabanında saklar; gizlilik ve destek metinleri bu davranışa göre güncellenmiştir. Harita karoları OpenStreetMap, Esri ve CARTO üzerinden gelir; yayın öncesi lisanslı bir karo sağlayıcısına taşınması önerilir.

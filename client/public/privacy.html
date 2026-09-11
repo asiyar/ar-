@@ -26,23 +26,26 @@
     </style>
   </head>
   <body>
-    <header><div class="brand"><span class="mark" aria-hidden="true"></span> ARICIMAP</div><div class="wrap"><h1>Gizlilik Politikası</h1><p style="color:#c5d5c4;margin:0">Son güncelleme: 24 Ağustos 2026</p></div></header>
+    <header><div class="brand"><span class="mark" aria-hidden="true"></span> ARICIMAP</div><div class="wrap"><h1>Gizlilik Politikası</h1><p style="color:#c5d5c4;margin:0">Son güncelleme: 11 Eylül 2026</p></div></header>
     <main class="wrap"><article>
-      <p>ARICIMAP, arıcıların arılık konumlarını ve saha kayıtlarını kendi rızalarıyla düzenlemesine yardımcı olur. Bu politika, uygulamanın ücretsiz OpenStreetMap/Leaflet haritası ve konum özelliğini nasıl kullandığını açıklar.</p>
+      <p>ARICIMAP, arıcıların arılık konumlarını ve saha kayıtlarını yönetmesi, kurum personelinin de bölgesindeki saha hareketlerini izlemesi için tasarlanmış bir arıcı saha uygulamasıdır. Uygulamayı kullanmak için telefon numarası ve parola ile hesap açmanız gerekir; kayıtlarınız sunucumuzdaki veritabanında saklanır.</p>
       <div class="note"><strong>Önemli:</strong> ARICIMAP arka planda konum izlemez. Konum yalnızca kullanıcı <em>“GPS”</em> veya <em>“Konumumu paylaş”</em> eylemini başlattığında ve cihaz izni verdiğinde istenir.</div>
       <h2>İşlenen bilgiler</h2>
-      <table><thead><tr><th>Bilgi</th><th>Ne zaman kullanılır</th><th>Amaç</th></tr></thead><tbody>
-        <tr><td>Yaklaşık veya hassas cihaz konumu</td><td>Kullanıcı GPS düğmesini seçtiğinde ve izin verdiğinde</td><td>Arılığı haritada işaretlemek veya gönüllü konum paylaşımını kaydetmek</td></tr>
-        <tr><td>Arılık adı, arıcı adı, kovan sayısı ve saha notu</td><td>Kullanıcı kayıt/denetim formunu doldurduğunda</td><td>Arılık ve saha kaydını göstermek</td></tr>
-        <tr><td>Telefon numarası</td><td>Yalnızca kullanıcı gönüllü paylaşım formuna eklerse</td><td>Topluluk koordinasyonu için kullanıcı tarafından sağlanan iletişim bilgisi</td></tr>
-        <tr><td>Personel başvuru adı ve iletişim bilgisi</td><td>Kullanıcı yerel personel erişim başvurusunu gönderdiğinde</td><td>Yerel demo kapsamında yönetici onayı ve saha atamasını göstermek</td></tr>
-        <tr><td>Konaklama talebi açıklaması ve seçilen konum</td><td>Kullanıcı gezginci arıcı konaklama talebi oluşturduğunda</td><td>Yerel demo kapsamında talep durumu ve saha koordinasyonunu göstermek</td></tr>
+      <table><thead><tr><th>Bilgi</th><th>Ne zaman kullanılır</th><th>Nerede saklanır</th></tr></thead><tbody>
+        <tr><td>Telefon numarası, ad soyad, parola</td><td>Hesap oluşturduğunuzda</td><td>Sunucu veritabanı (parola geri döndürülemez özet olarak)</td></tr>
+        <tr><td>Yaklaşık veya hassas cihaz konumu</td><td>Kullanıcı GPS düğmesini seçtiğinde ve izin verdiğinde</td><td>Sunucu veritabanı ve cihazın yerel depolaması</td></tr>
+        <tr><td>Arılık adı, arıcı adı, kovan sayısı ve saha notu</td><td>Kullanıcı kayıt/denetim formunu doldurduğunda</td><td>Sunucu veritabanı</td></tr>
+        <tr><td>Telefon numarası (gönüllü paylaşım)</td><td>Yalnızca kullanıcı gönüllü paylaşım formunu doldurursa</td><td>Sunucu veritabanı; aynı bölgedeki kullanıcılara gösterilir</td></tr>
+        <tr><td>Personel başvurusu adı ve iletişim bilgisi</td><td>Kullanıcı personel yetkisi başvurusu gönderdiğinde</td><td>Sunucu veritabanı; yönetici inceler</td></tr>
+        <tr><td>Konaklama talebi açıklaması ve seçilen konum</td><td>Kullanıcı konaklama talebi oluşturduğunda</td><td>Sunucu veritabanı</td></tr>
+        <tr><td>Bildirim jetonu</td><td>Bildirim izni verildiğinde</td><td>Sunucu veritabanı (yalnızca bildirim göndermek için)</td></tr>
       </tbody></table>
       <h2>Konum ve harita</h2>
-      <p>Uygulama ücretsiz <a href="https://www.openstreetmap.org/" target="_blank" rel="noreferrer">OpenStreetMap</a> harita karolarını ve Leaflet açık kaynak kütüphanesini kullanır. Harita yüklenirken seçilen harita sağlayıcısı teknik olarak cihazın IP adresi ve istenen harita karo bilgisini işleyebilir. Bu kullanım, harita işlevini göstermek için gereklidir.</p>
+      <p>Harita için Leaflet açık kaynak kütüphanesi uygulamanın paketi içinde gelir; harita karoları <a href="https://www.openstreetmap.org/" target="_blank" rel="noreferrer">OpenStreetMap</a>, Esri World Imagery ve CARTO sunucularından yüklenir. Harita yüklenirken bu sağlayıcılar cihazın IP adresini ve istenen karo bilgisini işleyebilir. Bu kullanım harita işlevini göstermek için gereklidir.</p>
       <p>Konum izni verilmezse uygulama çalışmaya devam eder; kullanıcı arılık noktasını haritada manuel olarak seçebilir. Uygulama arka plan konum izni istemez ve konumu reklam hedefleme amacıyla kullanmaz.</p>
       <h2>Veri saklama ve silme</h2>
-      <p>Mevcut ücretsiz sürümde arılık, denetim, gönüllü paylaşım, yerel personel başvurusu/ataması ve konaklama talebi kayıtları cihazın yerel uygulama alanında tutulur. Kullanıcı uygulama içindeki <em>“Sıfırla”</em> seçeneğiyle kayıtları silebilir; uygulamanın kaldırılması da cihazdaki yerel veriyi siler. Bu özellikler çok kullanıcılı sunucu, gerçek yetkilendirme veya bulut eşitleme sağlamaz. Hesap ve bulut eşitleme özelliği ileride eklenirse, bu politika saklama süresi ve silme talebi akışıyla güncellenecektir.</p>
+      <p>Arılık, denetim, gönüllü paylaşım, personel başvurusu ve konaklama talebi kayıtları hesabınıza bağlı olarak sunucudaki veritabanında tutulur; oturum kayıtları süresi dolduğunda otomatik olarak silinir. Bazı ekranlar çevrimdışı çalışabilmek için kayıtların bir kopyasını cihazın yerel depolamasında da tutar.</p>
+      <p>Hesabınızı ve tüm verilerinizi <strong>Hesap</strong> sekmesindeki <strong>“Hesabımı kalıcı olarak sil”</strong> düğmesiyle kalıcı olarak silebilirsiniz. Silme talebinizi <a href="mailto:muratvet21@gmail.com">muratvet21@gmail.com</a> adresine de iletebilirsiniz.</p>
       <h2>Reklam ve üçüncü taraflar</h2>
       <p>ARICIMAP kişiselleştirilmiş reklam için konum verisi kullanmaz. Uygulama içindeki sponsor alanı yalnızca yönetici tarafından onaylanmış içerikler için ayrılmıştır; üçüncü taraf reklam ağları veya davranışsal reklam izleyicileri bu sürümde kullanılmaz.</p>
       <h2>İletişim</h2>

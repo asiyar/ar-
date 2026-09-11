@@ -1,5 +1,11 @@
 # ARICIMAP uygulama kodu denetimi — 28 Ağustos 2026
 
+> **Not (11 Eylül 2026):** Bu dosya, uygulamanın **istemci tarafı localStorage**
+> dönemindeki denetim kaydıdır. Dosyada adı geçen `aricimap-reference.html` ve
+> `server/stateStore.ts` artık depoda yoktur; mimari Capacitor + sunucu hesabına
+> taşınmıştır. Güncel durum için `docs/APP-STORE-ONCESI-DENETIM-2026-09-11.md`
+> dosyasına bakın.
+
 `client/public/aricimap-reference.html` ve yanındaki iki JS dosyası incelendi.
 Bulunan 15 sorun düzeltildi. Aşağıda her biri, neden önemli olduğuyla birlikte.
 

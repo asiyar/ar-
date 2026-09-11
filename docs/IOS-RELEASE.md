@@ -6,10 +6,12 @@
 |---|---|
 | Bundle ID | `com.arcadianstore.aricimap` |
 | Uygulama adı | `ARICIMAP` |
-| Sürüm | `1.0` (`1`) |
+| Sürüm | `1.4` (derleme numarası CI'da `github.run_number`) |
 | Konum izni | `NSLocationWhenInUseUsageDescription` |
 | Konum davranışı | Yalnızca kullanıcının GPS/konum paylaşımı eylemiyle; arka plan konumu yok |
-| Native eklenti | `@capacitor/geolocation` 8.2.2, Swift Package Manager ile kaydedildi |
+| Cihaz desteği | Yalnızca iPhone (`TARGETED_DEVICE_FAMILY = 1`), iPad kapalı |
+| Gizlilik manifesti | `ios/App/App/PrivacyInfo.xcprivacy` |
+| Native eklenti | `@capacitor/push-notifications` (yalnızca Android'de etkin; iOS'ta APNs bekliyor) |
 
 `Info.plist` içinde konum açıklaması şudur:
 
@@ -17,7 +19,7 @@
 
 ## Doğrulanan eşitleme
 
-`pnpm build`, referans HTML varlıklarının `dist/public` alanına kopyalanması ve `pnpm exec cap sync ios` komutları başarıyla çalıştı. iOS uygulamasına kopyalanan `ios/App/App/public/index.html`, kaynak `client/public/aricimap-reference.html` ile aynı SHA-256 özetine sahiptir.
+`pnpm build`, arayüz varlıklarını (`client/public/*` → `dist/public`) kopyalar ve `pnpm exec cap sync ios` iOS projesini bu çıktıyla eşitler. iOS paketine giren `ios/App/App/public/index.html` kaynak `client/index.html` ile aynı içeriktir.
 
 ## TestFlight blokajı
 

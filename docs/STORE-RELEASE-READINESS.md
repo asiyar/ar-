@@ -1,5 +1,7 @@
 # ARICIMAP — Mobil Mağaza Yayın Hazırlığı
 
+> **Güncelleme (11 Eylül 2026):** Bu doküman uygulamanın **web prototipi** dönemine aittir. Ürün artık Capacitor tabanlı yerel bir uygulamadır: hesap, sunucu (Express + PostgreSQL/Neon), konum paylaşımı ve Android push vardır; QR/kamera **yoktur**. Güncel denetim ve düzeltme durumu için `docs/APP-STORE-ONCESI-DENETIM-2026-09-11.md`, inceleme notu için `docs/APP-REVIEW-NOTLARI.md` dosyasına bakın.
+
 > Bu doküman, ARICIMAP’in mevcut web prototipinden iOS ve Android mağazalarında yayınlanabilir bir yerel uygulamaya geçişi için ürün ve uyumluluk kontrol listesidir. Bu aşamada mağaza hesabına veya kullanıcı verisine dokunulmamıştır.
 
 ## Ürün kimliği

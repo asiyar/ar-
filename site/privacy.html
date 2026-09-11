@@ -27,31 +27,41 @@
 <body>
 <header><div class="wrap">
   <h1>ARICIMAP — Gizlilik Politikası</h1>
-  <p>Son güncelleme: 28 Ağustos 2026</p>
+  <p>Son güncelleme: 11 Eylül 2026</p>
 </div></header>
 
 <main><div class="wrap">
 
 <h2>Özet</h2>
-<p>ARICIMAP, arıcıların arılık konumlarını takip etmesi ve saha koordinasyonu yapması için tasarlanmış bir uygulamadır. Uygulama <strong>hesap açmanızı gerektirmez</strong> ve girdiğiniz veriler <strong>yalnızca kendi cihazınızda</strong> saklanır. ARICIMAP'in bu verileri toplayan bir sunucusu yoktur.</p>
+<p>ARICIMAP, arıcıların arılık konumlarını ve saha kayıtlarını yönetmesi, kurum personelinin de bölgesindeki saha hareketlerini izlemesi için tasarlanmış bir arıcı saha uygulamasıdır. Uygulamayı kullanmak için <strong>telefon numarası ve parola ile hesap açmanız gerekir</strong>. Girdiğiniz kayıtlar sunucumuzdaki veritabanında saklanır. Bu politika hangi verileri, hangi amaçla ve ne kadar süreyle işlediğimizi açıklar.</p>
 
 <h2>Hangi veriler işleniyor</h2>
 <table>
   <tr><th>Veri</th><th>Ne zaman</th><th>Nerede saklanıyor</th></tr>
   <tr>
+    <td>Telefon numarası, ad soyad, parola</td>
+    <td>Hesap oluşturduğunuzda</td>
+    <td>Sunucu veritabanı (parola yalnızca geri döndürülemez özet olarak tutulur)</td>
+  </tr>
+  <tr>
     <td>Konum (enlem/boylam)</td>
     <td>Yalnızca “GPS konumum” veya “Konumumu paylaş” düğmesine bastığınızda</td>
-    <td>Cihazınızın yerel depolamasında</td>
+    <td>Sunucu veritabanı ve cihazınızın yerel depolaması</td>
   </tr>
   <tr>
     <td>Arılık kayıtları, kovan sayısı, saha notları, denetim kayıtları</td>
     <td>Siz girdiğinizde</td>
-    <td>Cihazınızın yerel depolamasında</td>
+    <td>Sunucu veritabanı</td>
   </tr>
   <tr>
-    <td>Arıcı ve personel adları</td>
-    <td>Siz girdiğinizde</td>
-    <td>Cihazınızın yerel depolamasında</td>
+    <td>Personel başvurusu ve konaklama talebi bilgileri</td>
+    <td>İlgili formu gönderdiğinizde</td>
+    <td>Sunucu veritabanı</td>
+  </tr>
+  <tr>
+    <td>Bildirim jetonu (cihaz tanımlayıcısı)</td>
+    <td>Bildirim iznini verdiğinizde</td>
+    <td>Sunucu veritabanı (yalnızca bildirim göndermek için)</td>
   </tr>
 </table>
 
@@ -59,24 +69,31 @@
   <strong>Arka planda konum takibi yapılmaz.</strong> Uygulama kapalıyken veya arka plandayken konumunuza erişmez. Konum izni yalnızca siz açıkça bir konum işlemi başlattığınızda kullanılır.
 </div>
 
-<h2>Verilerin cihazdan çıktığı tek durum</h2>
-<p>Uygulama harita görüntüsü için iki dış hizmete istek gönderir:</p>
+<h2>Verilerin paylaşıldığı durumlar</h2>
+<p>Kayıtlarınız hesabınıza bağlıdır ve aşağıdaki durumlarda paylaşılır:</p>
 <ul>
-  <li><strong>OpenStreetMap</strong> — harita karolarını yüklemek için. Görüntülediğiniz harita alanının koordinatları OpenStreetMap sunucularına iletilir. <a href="https://osmfoundation.org/wiki/Privacy_Policy" target="_blank" rel="noreferrer">OSMF gizlilik politikası</a></li>
-  <li><strong>Nominatim</strong> — il sınırı geometrisini almak için. Yalnızca idari sınır sorgusu yapılır.</li>
+  <li><strong>Yetkili kurum personeli</strong> — yönetici onayıyla atanmış personel, sorumlu olduğu il/ilçedeki arıcıların konum ve iletişim bilgilerini saha koordinasyonu amacıyla görür.</li>
+  <li><strong>Gönüllü konum paylaşımı</strong> — “Konumumu paylaş” formunu doldurursanız girdiğiniz ad, telefon ve konum aynı bölgedeki kullanıcılara gösterilir. Bu paylaşım isteğe bağlıdır.</li>
+  <li><strong>Barındırma sağlayıcıları</strong> — sunucu ve veritabanı için Render ve Neon (Frankfurt, AB) altyapısı kullanılır.</li>
+  <li><strong>Harita servisleri</strong> — harita karoları için OpenStreetMap, Esri ve CARTO sunucularına görüntülediğiniz alanın koordinatları ve IP adresiniz iletilir. <a href="https://osmfoundation.org/wiki/Privacy_Policy" target="_blank" rel="noreferrer">OSMF gizlilik politikası</a></li>
 </ul>
-<p>Bu istekler dışında hiçbir veri cihazınızdan ayrılmaz. Arılık kayıtlarınız, notlarınız ve kaydettiğiniz konumlar hiçbir sunucuya gönderilmez.</p>
+<p>Verileriniz reklam amacıyla satılmaz, reklam ağlarıyla paylaşılmaz ve profilleme için kullanılmaz.</p>
 
-<h2>Toplanmayan veriler</h2>
+<h2>Toplanmayan ve erişilmeyen veriler</h2>
 <ul>
-  <li>Reklam kimliği veya izleme tanımlayıcısı kullanılmaz.</li>
+  <li>Reklam kimliği veya izleme tanımlayıcısı kullanılmaz; uygulamalar arası izleme yapılmaz.</li>
   <li>Analitik veya kullanım istatistiği toplanmaz.</li>
-  <li>Üçüncü taraf reklam ağı bulunmaz.</li>
-  <li>Kişi listesi, fotoğraf galerisi, mikrofon veya sağlık verisine erişilmez.</li>
+  <li>Üçüncü taraf reklam ağı bulunmaz. Uygulama içindeki sponsor alanı yalnızca yönetici tarafından eklenen kendi içeriğimizdir.</li>
+  <li>Kişi listesi, fotoğraf galerisi, mikrofon, kamera ve sağlık verisine erişilmez.</li>
+  <li>Konumunuz arka planda ve uygulama kapalıyken izlenmez.</li>
 </ul>
+
+<h2>Veri saklama süresi</h2>
+<p>Hesap bilgileriniz ve saha kayıtlarınız hesabınız açık olduğu sürece tutulur. Oturum kayıtları süresi dolduğunda otomatik olarak silinir. Hesabınızı sildiğinizde ilişkili tüm kayıtlar da silinir.</p>
 
 <h2>Verilerinizi silme</h2>
-<p>Uygulama içindeki kenar çubuğunda bulunan <strong>“Sıfırla”</strong> bağlantısı, cihazda saklanan tüm ARICIMAP verilerini kalıcı olarak siler. Uygulamayı cihazınızdan kaldırmanız da aynı sonucu verir. Silinen veriler geri getirilemez; ARICIMAP'te sizin adınıza tutulan bir kopya bulunmadığı için ayrıca bir silme talebi göndermenize gerek yoktur.</p>
+<p>Hesabınızı ve tüm verilerinizi doğrudan uygulama içinden silebilirsiniz: <strong>Hesap</strong> sekmesindeki <strong>“Hesabımı kalıcı olarak sil”</strong> düğmesi hesabınızı, konum kayıtlarınızı, notlarınızı, başvurularınızı ve bildirim jetonunuzu kalıcı olarak siler. İşlem geri alınamaz.</p>
+<p>Silme talebinizi <a href="mailto:muratvet21@gmail.com">muratvet21@gmail.com</a> adresine e-posta ile de iletebilirsiniz; talepler en geç 30 gün içinde sonuçlandırılır.</p>
 
 <h2>Çocukların gizliliği</h2>
 <p>ARICIMAP genel kullanıma yönelik bir saha aracıdır ve çocuklara yönelik değildir. Bilerek çocuklardan veri toplamaz.</p>

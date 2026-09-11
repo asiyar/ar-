@@ -68,9 +68,11 @@ Mevcut URL'ler Manus'un geçici alan adında (`sleepdash-dm6etvr5.manus.space`).
 ### Play Console formları
 
 - [ ] Mağaza listelemesi (açıklama, ekran görüntüleri, ikon)
-- [ ] **Data safety** formu — bu uygulama için doğru cevaplar:
-      veri toplanmıyor, veri paylaşılmıyor, konum yalnızca cihazda işleniyor.
-      Ayrıntı için `site/privacy.html` içeriğine bak.
+- [ ] **Data safety** formu — bu uygulama için doğru cevaplar (11 Eylül 2026 denetimi):
+      hesap için telefon numarası ve ad, hassas konum, kullanıcı içeriği (saha notu,
+      başvuru, konaklama talebi) ve cihaz kimliği (bildirim jetonu) **toplanıyor**;
+      bu veriler **kullanıcıyla ilişkilendiriliyor**. Konum reklam amacıyla
+      paylaşılmıyor. Ayrıntı için `site/privacy.html` içeriğine bak.
 - [ ] İçerik derecelendirmesi anketi
 - [ ] Hedef kitle ve içerik
 - [ ] Reklam beyanı: reklam yok
@@ -87,14 +89,18 @@ Mevcut URL'ler Manus'un geçici alan adında (`sleepdash-dm6etvr5.manus.space`).
 ### App Store Connect formları
 
 - [ ] iPhone ekran görüntüleri yüklendi (6.7" ve 6.5" zorunlu) — şu an 0/10
-- [ ] **App Privacy** veri beyanı tamamlandı.
-      Uygulama sunucuya veri göndermediği için "Data Not Collected" seçilebilir;
-      ancak OpenStreetMap ve Nominatim'e giden harita istekleri
-      `site/privacy.html` içinde açıklandığı gibi beyan edilmeli.
+- [ ] **App Privacy** veri beyanı tamamlandı. "Data Not Collected" **seçilemez**:
+      iletişim bilgisi (telefon, ad), hassas konum, kullanıcı içeriği (saha notu,
+      başvuru, konaklama talebi) ve cihaz kimliği (bildirim jetonu) toplanıyor ve
+      hesaba bağlı olarak sunucuda saklanıyor. Kullanım amacı: uygulama işlevselliği.
+      İzleme (tracking) yapılmıyor; reklam ağı yok.
 - [ ] Privacy Policy URL güncellendi
 - [ ] İkincil kategori seçildi (birincil zaten Productivity)
-- [ ] App Review notu güncel: uygulama giriş gerektirmiyor, konum yalnızca
-      kullanıcı eylemiyle kullanılıyor, arka plan takibi yok
+- [ ] App Review notu güncel: **uygulama giriş gerektirir** ve incelemeye demo
+      hesap verilmelidir (bkz. `docs/APP-REVIEW-NOTLARI.md`). Konum yalnızca
+      kullanıcı eylemiyle kullanılır, arka plan takibi yoktur. Android'de kilit
+      ekranı bildirimi, iOS'ta uygulama içi mesaj kutusu çalışır; iOS'ta kilit
+      ekranı bildirimi bulunmaz.
 
 ---
 

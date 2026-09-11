@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="tr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#263f2d" />
+    <title>ARICIMAP Destek</title>
+    <style>
+      :root { --forest:#263f2d; --honey:#d59622; --cream:#f7f4eb; --ink:#2d3a2d; --muted:#627362; --line:#dfe5da; }
+      * { box-sizing: border-box; }
+      body { margin:0; color:var(--ink); background:var(--cream); font:16px/1.65 system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; }
+      header { padding:44px 22px 34px; background:var(--forest); color:white; }
+      .brand { max-width:820px; margin:auto; display:flex; gap:12px; align-items:center; font-weight:800; letter-spacing:.11em; }
+      .mark { width:32px; height:32px; border:2px solid var(--honey); border-radius:11px; transform:rotate(45deg); }
+      .wrap { width:min(820px, calc(100% - 32px)); margin:34px auto 70px; }
+      article { padding:26px; border:1px solid var(--line); border-radius:18px; background:#fffdfa; box-shadow:0 12px 30px rgba(35,61,41,.06); }
+      h1 { margin:18px 0 4px; font-size:clamp(2rem,5vw,3.3rem); line-height:1; letter-spacing:-.05em; }
+      h2 { margin:30px 0 8px; font-size:1.2rem; letter-spacing:-.02em; }
+      h3 { margin:22px 0 6px; font-size:1.02rem; color:var(--forest); }
+      p, li { color:#455a46; }
+      a { color:#2e7248; font-weight:700; }
+      .note { margin:18px 0; padding:14px 16px; border-left:4px solid var(--honey); border-radius:8px; background:#fff7dc; color:#65541f; }
+      footer { margin-top:22px; color:var(--muted); font-size:.86rem; }
+    </style>
+  </head>
+  <body>
+    <header><div class="brand"><span class="mark" aria-hidden="true"></span> ARICIMAP</div><div class="wrap"><h1>Destek</h1><p style="color:#c5d5c4;margin:0">Arıcı saha ve arılık konum sistemi</p></div></header>
+    <main class="wrap"><article>
+      <p>Sorun bildirimi, öneri veya sorularınız için e-posta gönderin. Genellikle birkaç iş günü içinde yanıt veriyoruz:</p>
+      <p><a href="mailto:muratvet21@gmail.com">muratvet21@gmail.com</a></p>
+
+      <h2>Sık sorulan sorular</h2>
+
+      <h3>Harita açılmıyor veya boş görünüyor</h3>
+      <p>Harita karoları internet bağlantısı gerektirir. Bağlantınızı kontrol edin. Uygulamayı tamamen kapatıp yeniden açmak çoğu durumda sorunu çözer.</p>
+
+      <h3>GPS konumum alınamıyor</h3>
+      <p>Cihaz ayarlarından ARICIMAP için konum izninin verildiğinden emin olun. iOS’ta Ayarlar › ARICIMAP › Konum, Android’de Ayarlar › Uygulamalar › ARICIMAP › İzinler. Bina içinde doğruluk düşebilir; açık alanda tekrar deneyin.</p>
+
+      <h3>Konumum arka planda takip ediliyor mu?</h3>
+      <p>Hayır. Konumunuza yalnızca siz “GPS konumum” veya “Konumumu paylaş” düğmesine bastığınızda erişilir. Uygulama arka plandayken konum kullanılmaz.</p>
+
+      <h3>Uygulamayı kullanmak için hesap gerekiyor mu?</h3>
+      <p>Evet. Telefon numarası ve parola ile hesap oluşturmanız gerekir. Arıcılar kayıt olur olmaz kullanmaya başlar; kurum personeli yetkisi ayrıca başvuru ve yönetici onayı gerektirir.</p>
+
+      <h3>Kayıtlarım nerede saklanıyor?</h3>
+      <p>Arılık kayıtları, saha notları ve paylaştığınız konumlar hesabınıza bağlı olarak sunucudaki veritabanında saklanır. Bu sayede aynı hesapla farklı cihazlardan girdiğinizde kayıtlarınızı görürsünüz.</p>
+
+      <h3>Verilerimi nasıl silerim?</h3>
+      <p><strong>Hesap</strong> sekmesindeki “Hesabımı kalıcı olarak sil” düğmesi hesabınızı ve tüm verilerinizi kalıcı olarak siler. Silme talebinizi <a href="mailto:muratvet21@gmail.com">e-posta</a> ile de iletebilirsiniz; talepler en geç 30 gün içinde sonuçlandırılır.</p>
+
+      <h3>Parolamı unuttum</h3>
+      <p>Giriş ekranındaki “Parolamı unuttum” bağlantısını kullanın. Kurtarma anahtarı gerekiyorsa yöneticinizden parolanızı sıfırlamasını isteyebilirsiniz.</p>
+
+      <h3>Gizlilik</h3>
+      <p>Veri işleme uygulamalarımızın tamamı <a href="./privacy.html">Gizlilik Politikası</a> sayfasında açıklanmıştır.</p>
+      <footer>ARICIMAP · Arcadian Store · Harita verisi © OpenStreetMap katkıda bulunanları</footer>
+    </article></main>
+  </body>
+</html>

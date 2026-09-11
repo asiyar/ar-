@@ -312,6 +312,10 @@
 
   window.aricimapApi = api;
 
+  // Gizlilik/destek sayfalarının yayınlandığı kök adres. Uygulama paketinde
+  // de aynı metinler bulunur; bu adres yalnızca yedek bağlantı içindir.
+  window.ARICIMAP_SITE = API_BASE || "https://ar-3q6i.onrender.com";
+
   async function start() {
     const awake = await wakeServer();
     if (!awake) {

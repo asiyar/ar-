@@ -1889,6 +1889,10 @@
       '<p class="muted" style="margin:6px 0 12px">Hesabın ve tüm verilerin (konum, başvuru, not, mesaj) kalıcı olarak silinir. Bu işlem geri alınamaz.</p>' +
       '<div id="delMsg"></div>' +
       '<button class="btn ghost full danger" id="hesapSil">Hesabımı kalıcı olarak sil</button></div>' +
+      '<div class="card"><div class="overline">Yasal ve destek</div>' +
+      '<button class="btn ghost small full" id="yasalGizlilik">Gizlilik politikasını oku</button>' +
+      '<button class="btn ghost small full" id="yasalDestek" style="margin-top:8px">Destek ve sık sorulan sorular</button>' +
+      '<p class="muted" style="margin:9px 0 0">Gizlilik, veri silme ve destek talepleri için: muratvet21@gmail.com</p></div>' +
       '<div class="card"><button class="btn ghost full" id="hesapCikis">Çıkış yap</button></div>';
 
     $("hesapSil").onclick = function () {
@@ -1925,6 +1929,14 @@
 
     $("hesapCikis").onclick = function () {
       $("logoutBtn").click();
+    };
+
+    $("yasalGizlilik").onclick = function () {
+      yasalSheet("privacy.html", "Gizlilik politikası");
+    };
+
+    $("yasalDestek").onclick = function () {
+      yasalSheet("support.html", "Destek");
     };
 
     if (basvurabilir) {
@@ -2009,10 +2021,54 @@
       });
   }
 
+  /**
+   * Gizlilik ve destek metinlerini uygulama paketinin içindeki HTML
+   * dosyalarından okuyup alt panelde gösterir. Böylece politika mağaza
+   * incelemesinde uygulamanın kendi içinden de okunabilir ve çevrimdışı çalışır.
+   */
+  function yasalSheet(dosya, baslik) {
+    openSheet("<h3>" + baslik + "</h3>" + '<div id="yasalGovde" class="muted">Metin yükleniyor…</div>');
+    fetch(dosya, { cache: "no-store" })
+      .then(function (yanit) {
+        if (!yanit.ok) throw new Error("dosya " + yanit.status);
+        return yanit.text();
+      })
+      .then(function (html) {
+        var gecici = document.createElement("div");
+        gecici.innerHTML = html;
+        var kaynak = gecici.querySelector("article") || gecici.querySelector("main") || gecici;
+        var hedef = $("yasalGovde");
+        if (!hedef) return;
+        hedef.className = "";
+        hedef.innerHTML = kaynak.innerHTML;
+      })
+      .catch(function () {
+        var hedef = $("yasalGovde");
+        if (hedef) {
+          hedef.innerHTML =
+            '<div class="error">Metin yüklenemedi. Gizlilik ve destek bilgilerine ' +
+            esc(window.ARICIMAP_SITE || "") +
+            " adresinden ulaşabilirsiniz.</div>";
+        }
+      });
+  }
+
+  /**
+   * Cihaz jetonunu sunucuya kaydeder.
+   *
+   * Şu an yalnızca Android'de çalışır: iOS tarafında APNs anahtarı, Push
+   * Notifications yetkisi (aps-environment) ve AppDelegate geri çağrıları
+   * bağlanmadan jeton alınamaz. Eksik kurulumla kullanıcıyı boşuna bildirim
+   * izni istemiyle karşılamamak için iOS bu adımda atlanır. iOS push'unu
+   * açmak için: Xcode'da Push Notifications yetkisini ekleyin, AppDelegate
+   * içine .capacitorDidRegisterForRemoteNotifications / DidFail... bildirimlerini
+   * gönderen iki metodu koyun ve Firebase'e APNs anahtarını yükleyin.
+   */
   function pushKaydet() {
     var cap = window.Capacitor;
     var eklenti = cap && cap.Plugins && cap.Plugins.PushNotifications;
     if (!eklenti || !cap.isNativePlatform || !cap.isNativePlatform()) return;
+    if (cap.getPlatform && cap.getPlatform() !== "android") return;
 
     eklenti.addListener("registration", function (bilgi) {
       var jeton = bilgi && bilgi.value;

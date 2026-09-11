@@ -1,6 +1,5 @@
 /** ARICIMAP server entry and small public configuration endpoint. */
 import express from "express";
-import { readState, writeState } from "./stateStore";
 import { createServer } from "http";
 import path from "path";
 import { fileURLToPath } from "url";
@@ -33,16 +32,10 @@ async function startServer() {
     .then(initPushSchema)
     .then(purgeExpiredSessions)
     .catch((error) => console.error("Veritabanı hazırlanamadı:", error));
-  app.get("/api/aricimap/state", async (_req, res) => {
-    res.json(await readState());
-  });
-  app.put("/api/aricimap/state", async (req, res) => {
-    if (!req.body || typeof req.body !== "object" || Array.isArray(req.body)) {
-      res.status(400).json({ error: "Geçersiz state gövdesi" });
-      return;
-    }
-    res.json(await writeState(req.body));
-  });
+  // NOT: Eski dosya tabanlı "/api/aricimap/state" uç noktası kaldırıldı.
+  // Kimlik doğrulaması olmadığı için tüm saha verisi herkese açık biçimde
+  // okunabiliyor ve üzerine yazılabiliyordu. Kayıtlar artık yalnızca kimliği
+  // doğrulanmış /api/aricimap/* uç noktaları üzerinden yönetilir.
 
   // Serve static files from dist/public in production
   const staticPath =
