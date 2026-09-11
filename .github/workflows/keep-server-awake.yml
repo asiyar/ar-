@@ -1,0 +1,30 @@
+name: Keep server awake
+
+# Render'ın ücretsiz planı ~15 dakika istek gelmeyince sunucuyu uyutuyor;
+# bir sonraki istekte 30-90 saniye "uyanma" gecikmesi oluyor (App Store
+# reviewer'ın gördüğü "Sunucuya bağlanılıyor…" takılması buradan geliyordu).
+# Bu workflow, sunucuyu asla uyumayacak şekilde 10 dakikada bir dürtüyor.
+#
+# Not: Render'ın ücretsiz planının aylık 750 saat çalışma limiti var; bu
+# şekilde 7/24 uyanık tutmak o limiti daha hızlı tüketir. Ay içinde limit
+# dolarsa servis o ay için durur — sorun tekrar ederse ücretli plana geçmek
+# gerekir.
+
+on:
+  schedule:
+    # Her 10 dakikada bir (GitHub cron dakika bazlı kesin garanti vermez,
+    # yoğunlukta birkaç dakika gecikebilir; Render'ın 15 dk'lık uyku süresi
+    # için yeterli pay bırakır).
+    - cron: "*/10 * * * *"
+  workflow_dispatch:
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - name: Ping health endpoint
+        run: |
+          curl -fsS --max-time 30 "https://ar-3q6i.onrender.com/api/aricimap/health" \
+            && echo "Sunucu uyanık." \
+            || echo "Ping başarısız oldu (sunucu uyanıyor olabilir, normal karşılanabilir)."
